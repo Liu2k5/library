@@ -38,8 +38,6 @@ public class Book {
     @Column(columnDefinition = "NTEXT")
     private String description;
 
-    @JoinColumn(name = "status_id")
-    @ManyToOne(cascade = CascadeType.ALL)
     private BookStatus status;
 
 }

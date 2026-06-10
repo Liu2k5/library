@@ -29,7 +29,5 @@ public class Membership {
     private Date startDate;
     private Date endDate;
 
-    @JoinColumn(name = "status_id")
-    @ManyToOne(cascade = CascadeType.ALL)
     private UserStatus userStatus;
 }

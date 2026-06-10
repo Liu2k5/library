@@ -17,14 +17,12 @@ public class MembershipType {
     private Long id;
 
     @Column(columnDefinition = "NVARCHAR(50)")
-    private String typeName;
+    private String name;
     private Long price;
     private Integer borrowLimit;
     private Integer borrowDurationDay;
     @Column(columnDefinition = "NVARCHAR(255)")
     private String description;
 
-    @JoinColumn(name = "user_status_id")
-    @ManyToOne(fetch = FetchType.LAZY)
     private UserStatus userStatus;
 }

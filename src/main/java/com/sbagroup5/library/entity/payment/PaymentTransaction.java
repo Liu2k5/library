@@ -25,8 +25,6 @@ public class PaymentTransaction {
     private String gatwayName;
     private String transactionCode;
 
-    @JoinColumn(name = "status_id")
-    @ManyToOne(fetch = FetchType.LAZY)
     private PaymentTransactionStatus status;
 
     private Date createdAt;

@@ -20,7 +20,7 @@ public class BorrowDetail {
     private Long id;
 
     @JoinColumn(name = "borrow_id")
-    @ManyToOne(fetch = FetchType.EAGER)
+    @OneToOne(fetch = FetchType.EAGER)
     private Borrow borrow;
 
     @JoinColumn(name = "copy_id")

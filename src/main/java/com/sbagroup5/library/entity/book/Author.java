@@ -17,7 +17,7 @@ public class Author {
     private Long id;
 
     @Column(columnDefinition = "NVARCHAR(100) NOT NULL")
-    private String authorName;
+    private String name;
 
     @Column(columnDefinition = "NTEXT")
     private String biography;

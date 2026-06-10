@@ -26,8 +26,6 @@ public class Notification {
     private String title;
     private String message;
 
-    @JoinColumn(name = "type_id")
-    @ManyToOne(fetch = FetchType.LAZY)
     private NotificationType type;
 
     private boolean isRead;

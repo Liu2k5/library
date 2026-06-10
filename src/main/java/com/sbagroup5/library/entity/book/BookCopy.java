@@ -22,8 +22,6 @@ public class BookCopy {
 
     private String barcode;
 
-    @JoinColumn(name = "status_id")
-    @ManyToOne(fetch = FetchType.LAZY)
     private CopyStatus status;
 
     @Column(columnDefinition = "NVARCHAR(255)")

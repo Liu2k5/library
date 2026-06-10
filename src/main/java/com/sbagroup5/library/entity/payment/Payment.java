@@ -25,15 +25,11 @@ public class Payment {
 
     private Long amount;
 
-    @JoinColumn(name = "type_id")
-    @ManyToOne(fetch = FetchType.LAZY)
     private PaymentType type;
 
     private String method;
 
     private Date date;
 
-    @JoinColumn(name = "status_id")
-    @ManyToOne(fetch = FetchType.LAZY)
     private PaymentStatus status;
 }

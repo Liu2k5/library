@@ -29,7 +29,5 @@ public class Fine {
 
     private Date issuedDate;
 
-    @JoinColumn(name = "status_id")
-    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private FineStatus status;
 }

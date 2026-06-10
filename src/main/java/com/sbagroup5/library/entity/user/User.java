@@ -43,8 +43,6 @@ public class User implements UserDetails {
     @Column(columnDefinition = "NVARCHAR(255)")
     private String address;
 
-    @JoinColumn(name = "status_id")
-    @ManyToOne(cascade = CascadeType.ALL)
     private UserStatus userStatus;
 
     private Date createdAt;
