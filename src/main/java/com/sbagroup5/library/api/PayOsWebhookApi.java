@@ -1,4 +1,4 @@
-package com.sbagroup5.api;
+package com.sbagroup5.library.api;
 
 import java.util.concurrent.CompletableFuture;
 
