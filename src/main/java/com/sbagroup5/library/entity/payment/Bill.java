@@ -15,6 +15,7 @@ import java.util.Date;
 @SuperBuilder
 public class Bill {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @JoinColumn(name = "payment_id")
