@@ -15,7 +15,7 @@ import java.util.Date;
 @SuperBuilder
 public class Fine {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @JoinColumn(name = "borrow_detail_id")

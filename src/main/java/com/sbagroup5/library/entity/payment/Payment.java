@@ -16,7 +16,6 @@ import java.util.Date;
 @SuperBuilder
 public class Payment {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @JoinColumn(name = "user_id")
