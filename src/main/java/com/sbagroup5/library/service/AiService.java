@@ -2,10 +2,9 @@ package com.sbagroup5.library.service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import com.sbagroup5.library.record.AiMessage;
-import com.sbagroup5.library.tool.CustomerTool;
+import com.sbagroup5.library.tool.ReaderTool;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.vectorstore.QuestionAnswerAdvisor;
@@ -33,20 +32,20 @@ public class AiService {
                     .maxMessages(36)
                     .build();
     private final ChatModel chatModel;
-    private final CustomerTool customerTool;
+    private final ReaderTool readerTool;
 
     public AiService(
             @Qualifier("googleGenAiChatModel") ChatModel chatModel,
             VectorStore vectorStore,
             Index pineconeIndex,
 //            CustomerService customerService,
-            CustomerTool customerTool)
+            ReaderTool readerTool)
     {
 //        this.customerService = customerService;
         this.vectorStore = vectorStore;
         this.pineconeIndex = pineconeIndex;
         this.chatModel = chatModel;
-        this.customerTool = customerTool;
+        this.readerTool = readerTool;
 
         this.chatClient = ChatClient.builder(chatModel)
                 .defaultSystem(systemPrompt)
@@ -75,7 +74,7 @@ public class AiService {
         try {
             answer = chatClient
                     .prompt(question)
-                    .tools(customerTool)
+                    .tools(readerTool)
                     .advisors(a -> a.param(ChatMemory.CONVERSATION_ID, conversationId))
                     .call()
                     .content();
