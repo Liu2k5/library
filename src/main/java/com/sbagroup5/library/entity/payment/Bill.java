@@ -15,7 +15,7 @@ import java.util.Date;
 @SuperBuilder
 public class Bill {
     @Id
-    private Long billId;
+    private Long id;
 
     @JoinColumn(name = "payment_id")
     @OneToOne(fetch = FetchType.LAZY)
