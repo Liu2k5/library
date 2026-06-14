@@ -22,7 +22,7 @@ public class PaymentTransaction {
     @OneToOne(fetch = FetchType.LAZY)
     private Payment payment;
 
-    private String gatwayName;
+    private String gatewayName;
     private String transactionCode;
 
     private PaymentTransactionStatus status;
