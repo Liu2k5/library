@@ -1,5 +1,5 @@
 package com.sbagroup5.library.entity.payment;
 
-public enum PaymentTransactionStatus {
+public enum BillStatus {
     PENDING, COMPLETED, FAILED
 }

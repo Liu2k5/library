@@ -13,10 +13,9 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder
-public class PaymentTransaction {
+public class Bill {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long billId;
 
     @JoinColumn(name = "payment_id")
     @OneToOne(fetch = FetchType.LAZY)
@@ -25,7 +24,7 @@ public class PaymentTransaction {
     private String gatewayName;
     private String transactionCode;
 
-    private PaymentTransactionStatus status;
+    private BillStatus status;
 
     private Date createdAt;
 }
