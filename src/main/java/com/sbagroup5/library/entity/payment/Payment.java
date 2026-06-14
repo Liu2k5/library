@@ -32,4 +32,6 @@ public class Payment {
     private Date date;
 
     private PaymentStatus status;
+
+    private String paymentUrl;
 }
