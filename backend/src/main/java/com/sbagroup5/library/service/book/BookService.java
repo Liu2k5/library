@@ -24,36 +24,52 @@ public class BookService {
 
     //Lay Danh Sach Books
     public Page<BookResponse> getBooks(int page, int size) {
+
         Pageable pageable = PageRequest.of(page, size);
 
         return bookRepository.findAll(pageable)
                 .map(book -> BookResponse.builder()
                         .id(book.getId())
+
                         .title(book.getTitle())
-                        .author(book.getAuthor().getName())
+
+                        .categoryId(book.getCategory().getId())
                         .category(book.getCategory().getName())
+
+                        .authorId(book.getAuthor().getId())
+                        .author(book.getAuthor().getName())
+
                         .price(book.getPrice())
                         .isbn(book.getIsbn())
                         .publisher(book.getPublisher())
                         .publishYear(book.getPublishYear())
+                        .description(book.getDescription())
                         .status(book.getStatus().name())
                         .build());
     }
 
     //Book Details
     public BookResponse getBook(Long id) {
+
         Book book = bookRepository.findById(id)
                 .orElseThrow();
 
         return BookResponse.builder()
                 .id(book.getId())
+
                 .title(book.getTitle())
-                .author(book.getAuthor().getName())
+
+                .categoryId(book.getCategory().getId())
                 .category(book.getCategory().getName())
+
+                .authorId(book.getAuthor().getId())
+                .author(book.getAuthor().getName())
+
                 .price(book.getPrice())
                 .isbn(book.getIsbn())
                 .publisher(book.getPublisher())
                 .publishYear(book.getPublishYear())
+                .description(book.getDescription())
                 .status(book.getStatus().name())
                 .build();
     }
