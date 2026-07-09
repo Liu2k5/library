@@ -1,28 +1,31 @@
 import axios from "axios";
 
 const API = axios.create({
-    baseURL: "http://localhost:8080/librarian/books",
+    baseURL: "http://localhost:8080/librarian",
     headers: {
         "Content-Type": "application/json",
     }
 });
 
-export const getBooks = (page, size) =>
-    API.get("", {
+export const getBooks = (page, size, keyword = "", categoryId = "", status = "") =>
+    API.get("/books", {
         params: {
             page,
-            size
+            size,
+            keyword,
+            categoryId,
+            status
         }
     });
 
 export const getBook = (id) =>
-    API.get(`/${id}`);
+    API.get(`/books/${id}`);
 
 export const createBook = (book) =>
-    API.post("", book);
+    API.post("/books", book);
 
 export const updateBook = (id, book) =>
-    API.put(`/${id}`, book);
+    API.put(`/books/${id}`, book);
 
-export const deleteBook = (id) =>
-    API.delete(`/${id}`);
+export const changeStatus = (id) =>
+    API.put(`/books/${id}/status`);

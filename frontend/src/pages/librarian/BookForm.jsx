@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { createBook, getBook, updateBook } from "../../../src/api/bookApi";
 import { useNavigate, useParams } from "react-router-dom";
+import Select from "react-select";
+import { getAllCategories } from "../../../src/api/categoryApi";
+import { getAllAuthors } from "../../../src/api/authorApi";
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 function BookForm() {
@@ -31,13 +34,46 @@ function BookForm() {
 
     });
 
+    const [categories, setCategories] = useState([]);
+
+    const [authors, setAuthors] = useState([]);
+
     useEffect(() => {
 
-        if (isEdit)
+        loadCategories();
+        loadAuthors();
 
+        if (isEdit) {
             loadBook();
+        }
 
     }, []);
+
+    const loadCategories = async () => {
+
+        const res = await getAllCategories();
+
+        setCategories(
+            res.data.map(c => ({
+                value: c.id,
+                label: c.name
+            }))
+        );
+
+    }
+
+    const loadAuthors = async () => {
+
+        const res = await getAllAuthors();
+
+        setAuthors(
+            res.data.map(a => ({
+                value: a.id,
+                label: a.name
+            }))
+        );
+
+    }
 
     const loadBook = async () => {
 
@@ -71,7 +107,7 @@ function BookForm() {
 
             await createBook(book);
 
-        navigate("/books");
+        navigate("/librarian/books");
 
     }
 
@@ -107,37 +143,111 @@ function BookForm() {
 
                 <div className="mb-3">
 
-                    <label>Category Id</label>
+                    <label className="form-label">
 
-                    <input
+                        Category
 
-                        className="form-control"
+                    </label>
 
-                        name="categoryId"
+                    <div className="d-flex">
 
-                        value={book.categoryId}
+                        <div className="flex-grow-1">
 
-                        onChange={handleChange}
+                            <Select
 
-                    />
+                                options={categories}
+
+                                placeholder="Select category..."
+
+                                value={
+                                    categories.find(
+                                        c => c.value === book.categoryId
+                                    )
+                                }
+
+                                onChange={(selected) =>
+                                    setBook({
+                                        ...book,
+                                        categoryId: selected.value
+                                    })
+                                }
+
+                                isSearchable
+
+                            />
+
+                        </div>
+
+                        <button
+
+                            type="button"
+
+                            className="btn btn-outline-primary ms-2"
+
+                            onClick={() => navigate("/librarian/categories")}
+
+                        >
+
+                            Manage
+
+                        </button>
+
+                    </div>
 
                 </div>
 
                 <div className="mb-3">
 
-                    <label>Author Id</label>
+                    <label className="form-label">
 
-                    <input
+                        Author
 
-                        className="form-control"
+                    </label>
 
-                        name="authorId"
+                    <div className="d-flex">
 
-                        value={book.authorId}
+                        <div className="flex-grow-1">
 
-                        onChange={handleChange}
+                            <Select
 
-                    />
+                                options={authors}
+
+                                placeholder="Select author..."
+
+                                value={
+                                    authors.find(
+                                        a => a.value === book.authorId
+                                    )
+                                }
+
+                                onChange={(selected) =>
+                                    setBook({
+                                        ...book,
+                                        authorId: selected.value
+                                    })
+                                }
+
+                                isSearchable
+
+                            />
+
+                        </div>
+
+                        <button
+
+                            type="button"
+
+                            className="btn btn-outline-primary ms-2"
+
+                            onClick={() => navigate("/librarian/authors")}
+
+                        >
+
+                            Manage
+
+                        </button>
+
+                    </div>
 
                 </div>
 
@@ -231,11 +341,24 @@ function BookForm() {
 
                 </div>
 
-                <button className="btn btn-success">
+                <div className="mt-3">
 
-                    Save
+                    <button
+                        type="submit"
+                        className="btn btn-success me-2"
+                    >
+                        Save
+                    </button>
 
-                </button>
+                    <button
+                        type="button"
+                        className="btn btn-secondary"
+                        onClick={() => navigate("/librarian/books")}
+                    >
+                        Cancel
+                    </button>
+
+                </div>
 
             </form>
 

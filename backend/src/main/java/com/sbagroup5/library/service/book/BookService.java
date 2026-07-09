@@ -9,6 +9,7 @@ import com.sbagroup5.library.entity.book.Category;
 import com.sbagroup5.library.repository.book.AuthorRepository;
 import com.sbagroup5.library.repository.book.BookRepository;
 import com.sbagroup5.library.repository.book.CategoryRepository;
+import com.sbagroup5.library.specification.book.BookSpecification;
 import org.springframework.data.domain.Page;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -23,29 +24,38 @@ public class BookService {
     private final CategoryRepository categoryRepository;
 
     //Lay Danh Sach Books
-    public Page<BookResponse> getBooks(int page, int size) {
+    public Page<BookResponse> getBooks(int page, int size, String keyword, Long categoryId, String status) {
 
         Pageable pageable = PageRequest.of(page, size);
 
-        return bookRepository.findAll(pageable)
-                .map(book -> BookResponse.builder()
-                        .id(book.getId())
+        return bookRepository.findAll(
+                BookSpecification.filter(
+                        keyword,
+                        categoryId,
+                        status
+                ),
+                pageable
+        ).map(book -> BookResponse.builder()
 
-                        .title(book.getTitle())
+                .id(book.getId())
 
-                        .categoryId(book.getCategory().getId())
-                        .category(book.getCategory().getName())
+                .title(book.getTitle())
 
-                        .authorId(book.getAuthor().getId())
-                        .author(book.getAuthor().getName())
+                .categoryId(book.getCategory().getId())
+                .category(book.getCategory().getName())
 
-                        .price(book.getPrice())
-                        .isbn(book.getIsbn())
-                        .publisher(book.getPublisher())
-                        .publishYear(book.getPublishYear())
-                        .description(book.getDescription())
-                        .status(book.getStatus().name())
-                        .build());
+                .authorId(book.getAuthor().getId())
+                .author(book.getAuthor().getName())
+
+                .price(book.getPrice())
+                .isbn(book.getIsbn())
+                .publisher(book.getPublisher())
+                .publishYear(book.getPublishYear())
+                .description(book.getDescription())
+                .status(book.getStatus().name())
+
+                .build());
+
     }
 
     //Book Details
@@ -124,8 +134,20 @@ public class BookService {
         return getBook(id);
     }
 
-    //Xoa Books
-    public void delete(Long id) {
-        bookRepository.deleteById(id);
+    //Thay doi trang thai book
+    public BookResponse changeStatus(Long id){
+
+        Book book = bookRepository.findById(id)
+                .orElseThrow();
+
+        if(book.getStatus() == BookStatus.AVAILABLE){
+            book.setStatus(BookStatus.UNAVAILABLE);
+        }else{
+            book.setStatus(BookStatus.AVAILABLE);
+        }
+
+        bookRepository.save(book);
+
+        return getBook(id);
     }
 }
