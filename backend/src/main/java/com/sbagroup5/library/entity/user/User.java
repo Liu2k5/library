@@ -31,13 +31,13 @@ public class User implements UserDetails {
     @Column(columnDefinition = "NVARCHAR(100)")
     private String fullName;
 
-    @Column(columnDefinition = "VARCHAR(100)")
+    @Column(columnDefinition = "VARCHAR(100) UNIQUE NOT NULL")
     private String email;
 
     @Column(columnDefinition = "VARCHAR(64)")
     private String password;
 
-    @Column(columnDefinition = "VARCHAR(20)")
+    @Column(columnDefinition = "VARCHAR(20) UNIQUE NOT NULL")
     private String phone;
 
     @Column(columnDefinition = "NVARCHAR(255)")
