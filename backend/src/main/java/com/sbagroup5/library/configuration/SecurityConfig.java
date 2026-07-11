@@ -37,34 +37,31 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authenticationProvider(authenticationProvider())
                 .authorizeHttpRequests(authorize -> authorize
-                        // public endpoints
                         .requestMatchers(
                                 "/api/auth/login",
                                 "/api/auth/register",
                                 "/api/auth/forgot-password",
                                 "/api/auth/reset-password",
-                                "/webhook",
-                                "/librarian/**")
+                                "/webhook")
                         .permitAll()
-                        // authenticated endpoints
                         .anyRequest().authenticated())
-                .formLogin(formLogin -> formLogin.disable())
+                .formLogin(form -> form.disable())
                 .httpBasic(httpBasic -> httpBasic.disable())
-                .csrf(csrf -> csrf.disable())
+                .csrf(crsf -> crsf.disable())
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
-                        .maximumSessions(1) // Concurrent sessions max is 1
+                        .maximumSessions(1)
                         .maxSessionsPreventsLogin(false))
                 .logout(logout -> logout
                         .logoutUrl("/api/auth/logout")
+                        .invalidateHttpSession(true)
+                        .deleteCookies("JSESSIONID")
                         .logoutSuccessHandler((request, response, authentication) -> {
                             response.setStatus(200);
                             response.getWriter().write("""
-                                        {"message": "Logout successful"}
-                                    """);
-                        })
-                        .invalidateHttpSession(true)
-                        .deleteCookies("JSESSIONID"));
+                                    {"message": "Logout successful"}
+                                            """);
+                        }));
 
         return http.build();
     }
@@ -93,6 +90,7 @@ public class SecurityConfig {
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
+        configuration.setExposedHeaders(Arrays.asList("Set-Cookie"));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

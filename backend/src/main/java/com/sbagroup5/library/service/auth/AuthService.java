@@ -1,7 +1,11 @@
 package com.sbagroup5.library.service.auth;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.UUID;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 
 import com.sbagroup5.library.entity.auth.PasswordResetToken;
 import com.sbagroup5.library.entity.user.Role;
@@ -23,10 +27,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import lombok.RequiredArgsConstructor;
 
@@ -53,13 +60,19 @@ public class AuthService {
                 .orElseThrow(() -> new BusinessException("Invalid email or password", "INVALID_CREDENTIALS"));
 
         if (user.getUserStatus() != UserStatus.ACTIVE) {
-            throw new BusinessException("Account is not active. Please contact administrator.", "ACCOUNT_INACTIVE");
+            throw new BusinessException("Account is not active.", "ACCOUNT_INACTIVE");
         }
 
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(user.getUsername(), request.password()));
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        SecurityContext context = SecurityContextHolder.getContext();
+        HttpServletRequest httpRequest = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes())
+                .getRequest();
+        HttpSession session = httpRequest.getSession(true);
+        session.setAttribute("SPRING_SECURITY_CONTEXT", context);
 
         return new LoginResponse(
                 user.getUsername(),
@@ -134,6 +147,7 @@ public class AuthService {
         user.setAddress(request.address());
         user.setRole(readerRole);
         user.setUserStatus(UserStatus.ACTIVE);
+        user.setCreatedAt(new Date());
 
         userRepository.save(user);
 
@@ -169,7 +183,7 @@ public class AuthService {
         }
 
         // Delete existing tokens for this user
-        tokenRepository.deleteByUser(user.getUsername());
+        tokenRepository.deleteByUserUsername(user.getUsername());
 
         // Generate new token
         String tokenValue = UUID.randomUUID().toString();

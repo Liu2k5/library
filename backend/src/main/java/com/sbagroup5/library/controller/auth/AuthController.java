@@ -1,4 +1,4 @@
-package com.sbagroup5.library.controller;
+package com.sbagroup5.library.controller.auth;
 
 import java.util.Map;
 
@@ -6,9 +6,11 @@ import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 
 import com.sbagroup5.library.record.auth.ChangePasswordRequest;
+import com.sbagroup5.library.record.auth.ForgotPasswordRequest;
 import com.sbagroup5.library.record.auth.LoginRequest;
 import com.sbagroup5.library.record.auth.LoginResponse;
 import com.sbagroup5.library.record.auth.RegisterRequest;
+import com.sbagroup5.library.record.auth.ResetPasswordRequest;
 import com.sbagroup5.library.service.auth.AuthService;
 
 import org.springframework.http.HttpStatus;
@@ -66,6 +68,26 @@ public class AuthController {
         authService.register(request);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(Map.of("message", "Registration successful. Please check your email for confirmation."));
+    }
+
+    /**
+     * Forgot password - send reset link to email
+     */
+    @PostMapping("/forgot-password")
+    public ResponseEntity<Map<String, String>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        authService.forgotPassword(request);
+        return ResponseEntity.ok(Map.of(
+                "message", "Password reset link has been sent to your email address"));
+    }
+
+    /**
+     * Reset password using token
+     */
+    @PostMapping("/reset-password")
+    public ResponseEntity<Map<String, String>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        authService.resetPassword(request);
+        return ResponseEntity.ok(Map.of(
+                "message", "Password has been reset successfully"));
     }
 
     /**

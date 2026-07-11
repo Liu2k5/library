@@ -1,4 +1,4 @@
-package com.sbagroup5.library.controller;
+package com.sbagroup5.library.controller.user;
 
 import jakarta.validation.Valid;
 
