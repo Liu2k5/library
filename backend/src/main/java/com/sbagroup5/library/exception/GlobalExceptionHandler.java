@@ -43,7 +43,7 @@ public class GlobalExceptionHandler {
         ErrorResponse response = new ErrorResponse(
                 HttpStatus.UNAUTHORIZED.value(),
                 "INVALID_CREDENTIALS",
-                "Invalid username or password",
+                "Invalid email or password",
                 null,
                 LocalDateTime.now());
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
