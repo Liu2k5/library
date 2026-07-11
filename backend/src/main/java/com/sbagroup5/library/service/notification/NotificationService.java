@@ -3,6 +3,7 @@ package com.sbagroup5.library.service.notification;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,8 +15,7 @@ import com.sbagroup5.library.repository.notification.NotificationRepository;
 @Service
 @RequiredArgsConstructor
 public class NotificationService {
-        @Autowired
-        private NotificationRepository notificationRepository;
+        private final NotificationRepository notificationRepository;
 
         public List<Notification> getAllNotifications() {
                 return notificationRepository.findAll();
@@ -25,9 +25,9 @@ public class NotificationService {
                 return notificationRepository.save(notification);
         }
         
-        public Notification getNotificationById(Long id) {
-                return notificationRepository.findById(id).orElse(null);
-        }   
+        public Optional<Notification> getNotificationById(Long id) {
+                return notificationRepository.findById(id);
+        }
 
         public Notification updateNotification(Long id, Notification notificationDetails) {
                 Notification notification = notificationRepository.findById(id).orElse(null);
