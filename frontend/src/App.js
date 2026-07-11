@@ -13,14 +13,14 @@ import ResetPassword from './components/auth/ResetPassword';
 import Profile from './components/profile/Profile';
 
 // Librarian Components
-import AuthorForm from './pages/librarian/AuthorForm';
-import AuthorList from './pages/librarian/AuthorList';
-import BookCopyForm from "./pages/librarian/BookCopyForm";
-import BookCopyList from "./pages/librarian/BookCopyList";
-import BookForm from "./pages/librarian/BookForm";
-import BookList from "./pages/librarian/BookList";
-import CategoryForm from './pages/librarian/CategoryForm';
-import CategoryList from './pages/librarian/CategoryList';
+import AuthorForm from './components/librarian/AuthorForm';
+import AuthorList from './components/librarian/AuthorList';
+import BookCopyForm from "./components/librarian/BookCopyForm";
+import BookCopyList from "./components/librarian/BookCopyList";
+import BookForm from "./components/librarian/BookForm";
+import BookList from "./components/librarian/BookList";
+import CategoryForm from './components/librarian/CategoryForm';
+import CategoryList from './components/librarian/CategoryList';
 
 // Home Component
 const Home = () => {
