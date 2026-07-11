@@ -72,56 +72,56 @@ BEGIN TRY
     (
         'user01',
         N'Nguyễn Văn An',
-        '123456',
+        '$2a$12$l2vR9Vpgn9h9HM92FRYpOOG1P9DrWM50jX6kj75zyYoxlM.o6d2ni', // password is '123456'
         'user01@gmail.com',
         '0901000001',
         N'Hà Nội',
         GETDATE(),
-        1,
+        0,
         (SELECT id FROM role WHERE name = N'MEMBER')
     ),
     (
         'user02',
         N'Trần Thị Bình',
-        '123456',
+        '$2a$12$l2vR9Vpgn9h9HM92FRYpOOG1P9DrWM50jX6kj75zyYoxlM.o6d2ni', // password is '123456'
         'user02@gmail.com',
         '0901000002',
         N'Hồ Chí Minh',
         GETDATE(),
-        1,
+        0,
         (SELECT id FROM role WHERE name = N'MEMBER')
     ),
     (
         'user03',
         N'Lê Minh Châu',
-        '123456',
+        '$2a$12$l2vR9Vpgn9h9HM92FRYpOOG1P9DrWM50jX6kj75zyYoxlM.o6d2ni', // password is '123456'
         'user03@gmail.com',
         '0901000003',
         N'Đà Nẵng',
         GETDATE(),
-        1,
+        0,
         (SELECT id FROM role WHERE name = N'VIP')
     ),
     (
         'user04',
         N'Phạm Quốc Dũng',
-        '123456',
+        '123456$2a$12$l2vR9Vpgn9h9HM92FRYpOOG1P9DrWM50jX6kj75zyYoxlM.o6d2ni', // password is '123456'
         'user04@gmail.com',
         '0901000004',
         N'Hải Phòng',
         GETDATE(),
-        1,
+        0,
         (SELECT id FROM role WHERE name = N'LIBRARIAN')
     ),
     (
         'user05',
         N'Hoàng Thu Hà',
-        '123456',
+        '123456$2a$12$l2vR9Vpgn9h9HM92FRYpOOG1P9DrWM50jX6kj75zyYoxlM.o6d2ni', // password is '123456'
         'user05@gmail.com',
         '0901000005',
         N'Cần Thơ',
         GETDATE(),
-        1,
+        0,
         (SELECT id FROM role WHERE name = N'ADMIN')
     );
 
