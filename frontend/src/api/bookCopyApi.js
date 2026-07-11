@@ -1,20 +1,18 @@
-import axios from "axios";
+import axiosInstance from "./axiosConfig";
 
-const API = axios.create({
-    baseURL: "http://localhost:8080/librarian"
-});
+const API = axiosInstance;
 
 export const getBookCopies = (bookId, page, size) =>
-    API.get(`/books/${bookId}/copies?page=${page}&size=${size}`);
+    API.get(`/librarian/books/${bookId}/copies?page=${page}&size=${size}`);
 
 export const getBookCopy = (id) =>
-    API.get(`/bookcopies/${id}`);
+    API.get(`/librarian/bookcopies/${id}`);
 
 export const createBookCopy = (bookId, copy) =>
-    API.post(`/books/${bookId}/copies`, copy);
+    API.post(`/librarian/books/${bookId}/copies`, copy);
 
 export const updateBookCopy = (id, copy) =>
-    API.put(`/bookcopies/${id}`, copy);
+    API.put(`/librarian/bookcopies/${id}`, copy);
 
 export const changeStatus = (id) =>
-    API.patch(`/bookcopies/${id}/status`);
+    API.patch(`/librarian/bookcopies/${id}/status`);
