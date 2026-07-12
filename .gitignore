@@ -36,3 +36,16 @@ frontend/node_modules/**
 backend/target/**
 
 backend/src/main/resources/application.private.properties
+
+# Node modules
+**/node_modules/
+
+# VS Code
+.vscode/
+**/.vscode/
+
+# NPM files
+package.json
+package-lock.json
+**/package.json
+**/package-lock.json
