@@ -6,15 +6,19 @@ function getDisplayName(user) {
   return user?.fullName || user?.username || user?.email || 'Admin';
 }
 
-function getInitials(displayName) {
-  const cleaned = displayName.trim();
-  if (!cleaned) return '--';
-  return cleaned.slice(-2).toUpperCase();
+function getInitials(user) {
+  return (user?.fullName || '?')
+    .trim()
+    .split(/\s+/)
+    .slice(-2)
+    .map((w) => w[0])
+    .join('')
+    .toUpperCase();
 }
 
 export default function TopBar({ user, loading, onLogout }) {
   const displayName = getDisplayName(user);
-  const initials = getInitials(displayName);
+  const initials = getInitials(user);
 
   return (
     <header className="topbar">
