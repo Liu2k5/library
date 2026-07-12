@@ -1,7 +1,22 @@
 package com.sbagroup5.library.repository.book.borrow;
 
-import com.sbagroup5.library.entity.book.borrow.Fine;
+import com.sbagroup5.library.entity.book.BookCopy;
+import com.sbagroup5.library.entity.book.borrow.Borrow;
+import com.sbagroup5.library.entity.book.borrow.BorrowDetail;
+import com.sbagroup5.library.entity.user.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface BorrowDetailRepository extends JpaRepository<Fine, Long> {
+import java.util.List;
+
+public interface BorrowDetailRepository extends JpaRepository<BorrowDetail, Long> {
+
+    List<BorrowDetail> findByBorrow(Borrow borrow);
+
+    List<BorrowDetail> findByBorrowAndReturnDateIsNull(Borrow borrow);
+
+    long countByBorrowAndReturnDateIsNull(Borrow borrow);
+
+    long countByBorrow_UserAndReturnDateIsNull(User user);
+
+    boolean existsByCopyAndReturnDateIsNull(BookCopy copy);
 }
