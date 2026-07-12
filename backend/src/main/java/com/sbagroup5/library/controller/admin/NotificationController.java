@@ -1,4 +1,4 @@
-package com.sbagroup5.library.api.admin;
+package com.sbagroup5.library.controller.admin;
 
 import java.util.List;
 
@@ -7,14 +7,18 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.sbagroup5.library.entity.notification.Notification;
+import com.sbagroup5.library.entity.user.User;
+import com.sbagroup5.library.repository.user.UserRepository;
 import com.sbagroup5.library.service.notification.NotificationService;
 
 @RestController
-@RequestMapping("/api/notifications")
+@RequestMapping("/admin/notifications")
 @CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
 public class NotificationController {
     @Autowired
     private NotificationService notificationService;
+    @Autowired
+    private UserRepository userRepository;
     @GetMapping
     public List<Notification> getAll(){
         return notificationService.getAllNotifications();
@@ -26,6 +30,13 @@ public class NotificationController {
     }
     @PostMapping
     public Notification create(@RequestBody Notification notification){
+
+        User user = userRepository
+                .findById(notification.getUser().getUsername())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        notification.setUser(user);
+
         return notificationService.createNotification(notification);
     }
     @PutMapping("/{id}")

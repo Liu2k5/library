@@ -1,104 +1,99 @@
 package com.sbagroup5.library.configuration;
 
-import java.io.IOException;
-import java.util.Collections;
+import java.util.Arrays;
+
+import com.sbagroup5.library.service.auth.CustomUserDetailsService;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.access.intercept.AuthorizationFilter;
-import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import com.sbagroup5.library.entity.user.User;
-
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
+import lombok.RequiredArgsConstructor;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity(prePostEnabled = true)
+@RequiredArgsConstructor
 public class SecurityConfig {
+
+    private final CustomUserDetailsService userDetailsService;
+
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable())
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.ALWAYS))
-            .addFilterBefore(sessionAuthenticationFilter(), AuthorizationFilter.class)
-            .authorizeHttpRequests(authorize -> authorize
-                // Static resources và error pages - public
-                .requestMatchers("/css/**", "/js/**", "/images/**", "/error/**").permitAll()
-
-                // Public URLs - không cần đăng nhập
-                .requestMatchers("/").permitAll()
-                
-                // Admin URLs - chỉ Admin
-                .requestMatchers("/admin/**").hasAnyRole("ADMIN")
-                
-                // Librarian URLs - chỉ Librarian, Admin
-                .requestMatchers("/librarian/**").hasAnyRole("LIBRARIAN","ADMIN")
-            
-                // API requests - public (test, lúc review có thể xóa)
-                .requestMatchers("/api/**").permitAll()
-
-                // Mặc định - public
-                .anyRequest().permitAll()
-            )
-            .exceptionHandling(exception -> exception
-                .accessDeniedHandler((request, response, accessDeniedException) -> {
-                    response.sendRedirect("/login?error=access_denied");
-                })
-            );
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .authenticationProvider(authenticationProvider())
+                .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers(
+                                "/api/auth/login",
+                                "/api/auth/register",
+                                "/api/auth/forgot-password",
+                                "/api/auth/reset-password",
+                                "/webhook")
+                        .permitAll()
+                        .anyRequest().authenticated())
+                .formLogin(form -> form.disable())
+                .httpBasic(httpBasic -> httpBasic.disable())
+                .csrf(crsf -> crsf.disable())
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                        .maximumSessions(1)
+                        .maxSessionsPreventsLogin(false))
+                .logout(logout -> logout
+                        .logoutUrl("/api/auth/logout")
+                        .invalidateHttpSession(true)
+                        .deleteCookies("JSESSIONID")
+                        .logoutSuccessHandler((request, response, authentication) -> {
+                            response.setStatus(200);
+                            response.getWriter().write("""
+                                    {"message": "Logout successful"}
+                                            """);
+                        }));
 
         return http.build();
     }
 
-    /**
-     * Filter để đưa user từ session vào Spring Security context
-     * Để có thể sử dụng hasRole() trong authorizeHttpRequests()
-     */
     @Bean
-    public OncePerRequestFilter sessionAuthenticationFilter() {
-        return new OncePerRequestFilter() {
-            @Override
-            protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
-                    throws ServletException, IOException {
-                
-                HttpSession session = request.getSession(false);
-                
-                if (session != null) {
-                    User user = (User) session.getAttribute("user");
-                    String role = (String) session.getAttribute("role");
-                    
-                    if (user != null && role != null) {
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
 
-                        String springSecurityRole = convertRoleToSpringSecurityRole(role);
-                        
-                        // Tạo authentication object và đưa vào SecurityContext
-                        UsernamePasswordAuthenticationToken authentication = 
-                            new UsernamePasswordAuthenticationToken(
-                                user.getUsername(),
-                                null,
-                                Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + springSecurityRole))
-                            );
-                        
-                        SecurityContextHolder.getContext().setAuthentication(authentication);
-                    }
-                }
-                
-                chain.doFilter(request, response);
-            }
-            
-            private String convertRoleToSpringSecurityRole(String role) {
-                return role.toUpperCase().replace(" ", "_");
-            }
-        };
+    @Bean
+    public AuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
+        provider.setPasswordEncoder(passwordEncoder());
+        return provider;
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowCredentials(true);
+        configuration.setExposedHeaders(Arrays.asList("Set-Cookie"));
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 }
