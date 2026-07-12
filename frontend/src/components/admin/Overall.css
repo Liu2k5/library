@@ -1,0 +1,108 @@
+  .overall-header {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-bottom: 28px;
+  }
+
+  .overall-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .overall-title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 30px;
+    color: var(--ink);
+  }
+
+  .overall-error {
+    font-size: 13px;
+    color: var(--stamp-red);
+    background: #fbeceb;
+    border: 1px solid var(--stamp-red);
+    border-radius: 4px;
+    padding: 10px 14px;
+    margin-bottom: 20px;
+  }
+
+  .overall-error code {
+    font-family: var(--font-mono);
+  }
+
+  .overall-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+  }
+
+  .index-card {
+    position: relative;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-top: 4px dashed var(--border);
+    border-radius: 6px;
+    padding: 22px 20px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    box-shadow: 0 1px 0 var(--border-soft);
+  }
+
+  .index-card-stamp {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    width: 46px;
+    height: 46px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    transform: rotate(-8deg);
+    opacity: 0.55;
+  }
+
+  .index-card-label {
+    font-family: var(--font-body);
+    font-size: 12.5px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    max-width: 70%;
+  }
+
+  .index-card-value {
+    font-family: var(--font-mono);
+    font-size: 26px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .index-card.accent-green .index-card-value {
+    color: var(--ledger-green);
+  }
+
+  .index-card.accent-brass .index-card-value {
+    color: #8a6a37;
+  }
+
+  .index-card.accent-red .index-card-value {
+    color: var(--stamp-red);
+  }
+
+  .index-card.accent-ink .index-card-value {
+    color: var(--ink);
+  }

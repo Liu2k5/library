@@ -1,0 +1,81 @@
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 18px 48px;
+  background: var(--ink);
+  border-bottom: 3px solid var(--brass);
+}
+
+.topbar-greeting {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.topbar-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--brass-light);
+}
+
+.topbar-name {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 24px;
+  color: #f5efdf;
+}
+
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.topbar-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ink-softer);
+  border: 2px solid var(--brass);
+  color: var(--brass-light);
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  flex-shrink: 0;
+}
+
+.topbar-logout {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 13px;
+  color: #f5efdf;
+  background: transparent;
+  border: 1.5px solid var(--stamp-red);
+  padding: 9px 18px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.topbar-logout:hover {
+  background: var(--stamp-red);
+  color: #fff;
+}
+
+@media (max-width: 560px) {
+  .topbar {
+    padding: 16px 20px;
+  }
+  .topbar-name {
+    font-size: 19px;
+  }
+}

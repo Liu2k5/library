@@ -1,0 +1,26 @@
+.dash-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.dash-body {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
+.dash-content {
+  flex: 1;
+  padding: 40px 48px;
+  overflow-y: auto;
+}
+
+@media (max-width: 860px) {
+  .dash-body {
+    flex-direction: column;
+  }
+  .dash-content {
+    padding: 28px 20px;
+  }
+}
