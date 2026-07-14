@@ -42,7 +42,8 @@ public class SecurityConfig {
                                 "/api/auth/register",
                                 "/api/auth/forgot-password",
                                 "/api/auth/reset-password",
-                                "/webhook")
+                                "/webhook",
+                                "/librarian/**")
                         .permitAll()
                         .anyRequest().authenticated())
                 .formLogin(form -> form.disable())

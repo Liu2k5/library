@@ -3,6 +3,14 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Login from "./components/auth/Login";
 import Register from "./components/auth/Register";
 import Dashboard from "./components/admin/pages/Dashboard";
+import BookList from "./components/librarian/BookList";
+import BookForm from "./components/librarian/BookForm";
+import CategoryList from './components/librarian/CategoryList';
+import CategoryForm from './components/librarian/CategoryForm';
+import AuthorList from './components/librarian/AuthorList';
+import AuthorForm from './components/librarian/AuthorForm';
+import BookCopyList from "./components/librarian/BookCopyList";
+import BookCopyForm from "./components/librarian/BookCopyForm";
 
 function App() {
   return (
