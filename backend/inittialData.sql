@@ -105,7 +105,7 @@ BEGIN TRY
     (
         'user04',
         N'Phạm Quốc Dũng',
-        '123456$2a$12$l2vR9Vpgn9h9HM92FRYpOOG1P9DrWM50jX6kj75zyYoxlM.o6d2ni', // password is '123456'
+        '$2a$12$l2vR9Vpgn9h9HM92FRYpOOG1P9DrWM50jX6kj75zyYoxlM.o6d2ni', // password is '123456'
         'user04@gmail.com',
         '0901000004',
         N'Hải Phòng',
@@ -116,7 +116,7 @@ BEGIN TRY
     (
         'user05',
         N'Hoàng Thu Hà',
-        '123456$2a$12$l2vR9Vpgn9h9HM92FRYpOOG1P9DrWM50jX6kj75zyYoxlM.o6d2ni', // password is '123456'
+        '$2a$12$l2vR9Vpgn9h9HM92FRYpOOG1P9DrWM50jX6kj75zyYoxlM.o6d2ni', // password is '123456'
         'user05@gmail.com',
         '0901000005',
         N'Cần Thơ',
