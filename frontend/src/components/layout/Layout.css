@@ -1,0 +1,35 @@
+.layout-wrapper {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding-top: 60px;
+    /* Height of fixed navbar */
+}
+
+.layout-body {
+    display: flex;
+    flex: 1;
+    background: #f8f9fa;
+    min-height: calc(100vh - 60px);
+}
+
+.layout-content {
+    flex: 1;
+    padding: 30px;
+    min-height: calc(100vh - 60px);
+    max-width: calc(100% - 250px);
+    margin-left: auto;
+    overflow-y: auto;
+}
+
+/* When sidebar is hidden, content takes full width */
+.layout-body:has(.sidebar-nav:not(:empty)) .layout-content {
+    max-width: calc(100% - 250px);
+}
+
+@media (max-width: 768px) {
+    .layout-content {
+        padding: 15px;
+        max-width: 100% !important;
+    }
+}

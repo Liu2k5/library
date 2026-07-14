@@ -102,7 +102,7 @@ const Profile = () => {
         <div className="container mt-4">
             <div className="row">
                 <div className="col-md-8 mx-auto">
-                    <div className="card shadow">
+                    <div className="card">
                         <div className="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                             <h4 className="mb-0">User Profile</h4>
                             {!isEditing && (

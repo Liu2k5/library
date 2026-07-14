@@ -1,19 +1,25 @@
 // src/components/common/Navbar.jsx
 import { NavDropdown } from 'react-bootstrap';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
 const Navbar = () => {
     const { user, logout, isAuthenticated } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
 
     const handleLogout = async () => {
         await logout();
         navigate('/login');
     };
 
+    // Check if we're in a specific section
+    const isLibrarianActive = location.pathname.startsWith('/librarian');
+    const isAdminActive = location.pathname.startsWith('/admin');
+    const isProfileActive = location.pathname.startsWith('/profile') || location.pathname.startsWith('/change-password');
+
     return (
-        <nav className="navbar navbar-expand-lg navbar-dark bg-primary">
+        <nav className="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
             <div className="container">
                 <Link className="navbar-brand" to="/">
                     <i className="bi bi-book me-2"></i>
@@ -34,32 +40,27 @@ const Navbar = () => {
                     {isAuthenticated ? (
                         <>
                             <ul className="navbar-nav me-auto">
-                                {/* Librarian Menu - React Bootstrap NavDropdown */}
+                                {/* Librarian Menu */}
                                 {(user?.role === 'ADMIN' || user?.role === 'LIBRARIAN') && (
                                     <li className="nav-item">
                                         <NavDropdown
                                             title={
                                                 <span className="text-white">
                                                     <i className="bi bi-book me-1"></i>
-                                                    Books
+                                                    Librarian Panel
                                                 </span>
                                             }
                                             id="librarianDropdown"
                                         >
-                                            <NavDropdown.Item as={Link} to="/librarian/books">
+                                            <NavDropdown.Item as={Link} to="/librarian/books" active={isLibrarianActive && location.pathname === '/librarian/books'}>
                                                 <i className="bi bi-list me-1"></i>
                                                 All Books
                                             </NavDropdown.Item>
-                                            <NavDropdown.Item as={Link} to="/librarian/books/add">
-                                                <i className="bi bi-plus-circle me-1"></i>
-                                                Add Book
-                                            </NavDropdown.Item>
-                                            <NavDropdown.Divider />
-                                            <NavDropdown.Item as={Link} to="/librarian/authors">
+                                            <NavDropdown.Item as={Link} to="/librarian/authors" active={isLibrarianActive && location.pathname === '/librarian/authors'}>
                                                 <i className="bi bi-person me-1"></i>
                                                 Authors
                                             </NavDropdown.Item>
-                                            <NavDropdown.Item as={Link} to="/librarian/categories">
+                                            <NavDropdown.Item as={Link} to="/librarian/categories" active={isLibrarianActive && location.pathname === '/librarian/categories'}>
                                                 <i className="bi bi-tags me-1"></i>
                                                 Categories
                                             </NavDropdown.Item>
@@ -70,10 +71,33 @@ const Navbar = () => {
                                 {/* Admin Menu */}
                                 {user?.role === 'ADMIN' && (
                                     <li className="nav-item">
-                                        <Link className="nav-link text-white" to="/admin">
-                                            <i className="bi bi-gear me-1"></i>
-                                            Admin Panel
-                                        </Link>
+                                        <NavDropdown
+                                            title={
+                                                <span className="text-white">
+                                                    <i className="bi bi-gear me-1"></i>
+                                                    Admin Panel
+                                                </span>
+                                            }
+                                            id="adminDropdown"
+                                        >
+                                            <NavDropdown.Item as={Link} to="/admin/overall" active={isAdminActive && location.pathname === '/admin/overall'}>
+                                                <i className="bi bi-bar-chart me-1"></i>
+                                                Overall
+                                            </NavDropdown.Item>
+                                            <NavDropdown.Divider />
+                                            <NavDropdown.Item as={Link} to="/admin/accounts" active={isAdminActive && location.pathname === '/admin/accounts'}>
+                                                <i className="bi bi-people me-1"></i>
+                                                Account Manager
+                                            </NavDropdown.Item>
+                                            <NavDropdown.Item as={Link} to="/admin/memberships" active={isAdminActive && location.pathname === '/admin/memberships'}>
+                                                <i className="bi bi-ticket me-1"></i>
+                                                Membership Manager
+                                            </NavDropdown.Item>
+                                            <NavDropdown.Item as={Link} to="/admin/notifications" active={isAdminActive && location.pathname === '/admin/notifications'}>
+                                                <i className="bi bi-bell me-1"></i>
+                                                Notification Manager
+                                            </NavDropdown.Item>
+                                        </NavDropdown>
                                     </li>
                                 )}
                             </ul>
@@ -87,23 +111,28 @@ const Navbar = () => {
                                         <span className="badge bg-light text-dark ms-2">
                                             {user?.role}
                                         </span>
+                                        {isProfileActive && (
+                                            <span className="ms-1 badge bg-success" style={{ fontSize: '8px', padding: '2px 6px' }}>
+                                                active
+                                            </span>
+                                        )}
                                     </span>
                                 }
                                 id="accountDropdown"
                                 align="end"
                                 style={{ color: 'white' }}
                             >
-                                <NavDropdown.Item as={Link} to="/profile">
+                                <NavDropdown.Item as={Link} to="/profile" active={isProfileActive && location.pathname === '/profile'}>
                                     <i className="bi bi-person me-2"></i>
                                     Profile
                                 </NavDropdown.Item>
-                                <NavDropdown.Item as={Link} to="/change-password">
+                                <NavDropdown.Item as={Link} to="/change-password" active={isProfileActive && location.pathname === '/change-password'}>
                                     <i className="bi bi-key me-2"></i>
                                     Change Password
                                 </NavDropdown.Item>
                             </NavDropdown>
 
-                            {/* Logout button outside dropdown */}
+                            {/* Logout button */}
                             <button
                                 onClick={handleLogout}
                                 className="btn btn-outline-light btn-sm ms-3"

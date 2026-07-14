@@ -1,91 +1,59 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { dashboardApi } from '../../api/dashboardApi';
-import './Overall.css';
-
-const todayStamp = new Date().toLocaleDateString('vi-VN', {
-  day: '2-digit',
-  month: '2-digit',
-  year: 'numeric',
-});
+import './AdminStyles.css';
 
 const formatCurrency = (value) =>
-  new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value ?? 0);
+    new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value ?? 0);
 
 const formatNumber = (value) => new Intl.NumberFormat('vi-VN').format(value ?? 0);
 
 export default function Overall() {
-  const [stats, setStats] = useState(null);
-  const [status, setStatus] = useState('loading'); // loading | ready | error
+    const [stats, setStats] = useState(null);
+    const [status, setStatus] = useState('loading');
 
-  useEffect(() => {
-    let isMounted = true;
-    dashboardApi
-      .getOverall()
-      .then((res) => {
-        if (isMounted) {
-          setStats(res.data);
-          setStatus('ready');
-        }
-      })
-      .catch(() => {
-        if (isMounted) setStatus('error');
-      });
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+    useEffect(() => {
+        dashboardApi
+            .getOverall()
+            .then((res) => {
+                setStats(res.data);
+                setStatus('ready');
+            })
+            .catch(() => setStatus('error'));
+    }, []);
 
-  const cards = [
-    {
-      key: 'revenue',
-      label: 'Doanh thu',
-      value: stats ? formatCurrency(stats.revenue) : '—',
-      accent: 'green',
-    },
-    {
-      key: 'users',
-      label: 'Số người dùng',
-      value: stats ? formatNumber(stats.userCount) : '—',
-      accent: 'brass',
-    },
-    {
-      key: 'librarians',
-      label: 'Số thủ thư',
-      value: stats ? formatNumber(stats.librarianCount) : '—',
-      accent: 'ink',
-    },
-    {
-      key: 'books',
-      label: 'Số sách hiện có',
-      value: stats ? formatNumber(stats.bookCount) : '—',
-      accent: 'red',
-    },
-  ];
+    const cards = [
+        { key: 'revenue', label: 'Revenue', value: stats?.revenue ? formatCurrency(stats.revenue) : '—', icon: 'bi-currency-dollar' },
+        { key: 'users', label: 'Total Users', value: stats?.userCount ? formatNumber(stats.userCount) : '—', icon: 'bi-people' },
+        { key: 'librarians', label: 'Librarians', value: stats?.librarianCount ? formatNumber(stats.librarianCount) : '—', icon: 'bi-person-badge' },
+        { key: 'books', label: 'Total Books', value: stats?.bookCount ? formatNumber(stats.bookCount) : '—', icon: 'bi-book' },
+    ];
 
-  return (
-    <section>
-      <div className="overall-header">
-        <span className="overall-eyebrow">Tổng quan</span>
-        <h2 className="overall-title">Overall</h2>
-      </div>
+    return (
+        <div className="admin-page">
+            <div className="page-header">
+                <h2>Dashboard Overview</h2>
+                <p className="text-muted">Real-time statistics and metrics</p>
+            </div>
 
-      {status === 'error' && (
-        <p className="overall-error">
-          Chưa lấy được số liệu
-        </p>
-      )}
+            {status === 'error' && (
+                <div className="alert alert-danger">Failed to load dashboard data.</div>
+            )}
 
-      <div className="overall-grid">
-        {cards.map((card) => (
-          <article key={card.key} className={`index-card accent-${card.accent}`}>
-            <div className="index-card-stamp">{todayStamp}</div>
-            <span className="index-card-label">{card.label}</span>
-            <span className="index-card-value">
-              {status === 'loading' ? '···' : card.value}
-            </span>
-          </article>
-        ))}
-      </div>
-    </section>
-  );
+            <div className="stats-grid">
+                {cards.map((card) => (
+                    <div key={card.key} className="stat-card">
+                        <div className="stat-icon">
+                            <i className={`bi ${card.icon}`}></i>
+                        </div>
+                        <div className="stat-content">
+                            <h6 className="stat-label">{card.label}</h6>
+                            <h3 className="stat-value">
+                                {status === 'loading' ? '...' : card.value}
+                            </h3>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
 }
