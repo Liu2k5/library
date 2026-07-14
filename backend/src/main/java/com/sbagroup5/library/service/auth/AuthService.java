@@ -163,7 +163,7 @@ public class AuthService {
                 request.username(),
                 request.email());
 
-        emailService.sendSimpleEmail(
+        emailService.sendEmail(
                 request.email(),
                 "Welcome to Library Management System",
                 emailContent);
@@ -211,7 +211,7 @@ public class AuthService {
                 user.getFullName(),
                 resetLink);
 
-        emailService.sendSimpleEmail(
+        emailService.sendEmail(
                 user.getEmail(),
                 "Password Reset Request - Library Management System",
                 emailContent);
@@ -260,7 +260,7 @@ public class AuthService {
                         "Library Management Team",
                 user.getFullName());
 
-        emailService.sendSimpleEmail(
+        emailService.sendEmail(
                 user.getEmail(),
                 "Password Reset Successful - Library Management System",
                 emailContent);
@@ -297,7 +297,7 @@ public class AuthService {
                         "Library Management Team",
                 currentUser.getFullName());
 
-        emailService.sendSimpleEmail(
+        emailService.sendEmail(
                 currentUser.getEmail(),
                 "Password Changed - Library Management System",
                 emailContent);

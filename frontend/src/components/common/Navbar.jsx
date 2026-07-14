@@ -111,11 +111,6 @@ const Navbar = () => {
                                         <span className="badge bg-light text-dark ms-2">
                                             {user?.role}
                                         </span>
-                                        {isProfileActive && (
-                                            <span className="ms-1 badge bg-success" style={{ fontSize: '8px', padding: '2px 6px' }}>
-                                                active
-                                            </span>
-                                        )}
                                     </span>
                                 }
                                 id="accountDropdown"

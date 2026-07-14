@@ -1,7 +1,11 @@
 package com.sbagroup5.library.service.payment;
 
-import com.sbagroup5.library.entity.book.borrow.Fine;
-import com.sbagroup5.library.entity.book.borrow.FineStatus;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.concurrent.ThreadLocalRandom;
+
 import com.sbagroup5.library.entity.payment.Bill;
 import com.sbagroup5.library.entity.payment.BillStatus;
 import com.sbagroup5.library.entity.payment.Payment;
@@ -21,18 +25,14 @@ import com.sbagroup5.library.repository.user.MembershipRepository;
 import com.sbagroup5.library.repository.user.MembershipTypeRepository;
 import com.sbagroup5.library.repository.user.UserRepository;
 import com.sbagroup5.library.service.EmailService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import vn.payos.PayOS;
 import vn.payos.model.v2.paymentRequests.CreatePaymentLinkRequest;
-
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Dịch vụ xử lý thanh toán trực tuyến qua cổng PayOS.
@@ -109,8 +109,7 @@ public class PaymentProcessingService {
                 payment.getMethod(),
                 payment.getDate(),
                 checkoutUrl,
-                "Vui lòng hoàn tất thanh toán qua cổng PayOS"
-        );
+                "Vui lòng hoàn tất thanh toán qua cổng PayOS");
     }
 
     /**
@@ -166,7 +165,7 @@ public class PaymentProcessingService {
 
         // Gửi email xác nhận
         try {
-            emailService.sendSimpleEmail(
+            emailService.sendEmail(
                     user.getEmail(),
                     "Xác nhận thanh toán thành công - Mã giao dịch: " + payment.getId(),
                     "Cảm ơn bạn đã thanh toán!\n\n" +
@@ -174,8 +173,7 @@ public class PaymentProcessingService {
                             "Số tiền: " + payment.getAmount() + " VND\n" +
                             "Loại: " + payment.getType() + "\n" +
                             "Thời gian: " + payment.getDate() + "\n\n" +
-                            "Trân trọng,\nThư viện trực tuyến"
-            );
+                            "Trân trọng,\nThư viện trực tuyến");
         } catch (Exception e) {
             log.error("Gửi email xác nhận thất bại cho {}: {}", user.getEmail(), e.getMessage());
         }
@@ -258,8 +256,7 @@ public class PaymentProcessingService {
                 payment.getMethod(),
                 payment.getDate(),
                 payment.getPaymentUrl(),
-                null
-        );
+                null);
     }
 
     /**
@@ -286,8 +283,7 @@ public class PaymentProcessingService {
                 payment.getMethod(),
                 payment.getDate(),
                 null,
-                "Đã huỷ giao dịch"
-        );
+                "Đã huỷ giao dịch");
     }
 
     /**
