@@ -1,29 +1,24 @@
 package com.sbagroup5.library.service;
 
-
 import org.springframework.beans.factory.annotation.Value;
-
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
-
 import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
-
 public class EmailService {
 
     private final JavaMailSender mailSender;
 
-
     @Value("${spring.mail.username}")
     private String fromEmail;
 
-    public void sendEmail(String to, String subject, String text) {
+    public void sendSimpleEmail(String to, String subject, String text) {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
             message.setFrom(fromEmail);
@@ -36,11 +31,5 @@ public class EmailService {
             log.error("Failed to send email to: {}", to, e);
             throw new RuntimeException("Failed to send email: " + e.getMessage());
         }
-
-    }
-
-    /** Bí danh của {@link #sendEmail} dùng cho các luồng phiếu mượn/thanh toán. */
-    public void sendSimpleEmail(String to, String subject, String text) {
-        sendEmail(to, subject, text);
     }
 }

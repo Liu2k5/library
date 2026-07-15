@@ -1,16 +1,22 @@
 // src/components/common/Sidebar.jsx
+// src/components/common/Sidebar.jsx
 import { NavLink, useLocation } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import './Sidebar.css';
 
 const Sidebar = () => {
     const location = useLocation();
+    const { isAuthenticated } = useAuth();
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     const role = user?.role || 'MEMBER';
 
     // Determine which section we're in
     const isLibrarianSection = location.pathname.startsWith('/librarian');
     const isAdminSection = location.pathname.startsWith('/admin');
-    const isProfileSection = location.pathname.startsWith('/profile') || location.pathname.startsWith('/change-password');
+    const isProfileSection = location.pathname.startsWith('/profile') ||
+        location.pathname.startsWith('/change-password') ||
+        location.pathname.startsWith('/membership') ||
+        location.pathname.startsWith('/payment');
 
     // If not in any special section, hide sidebar
     if (!isLibrarianSection && !isAdminSection && !isProfileSection) {
@@ -21,7 +27,7 @@ const Sidebar = () => {
         <nav className="sidebar-nav">
             <ul className="sidebar-menu">
                 {/* Show only Librarian menu when in librarian section */}
-                {isLibrarianSection && (role === 'ADMIN' || role === 'LIBRARIAN') && (
+                {isLibrarianSection && role === 'LIBRARIAN' && (
                     <li className="sidebar-section">
                         <span className="sidebar-section-title">Librarian Panel</span>
                         <ul className="sidebar-submenu">
@@ -103,8 +109,27 @@ const Sidebar = () => {
                     </li>
                 )}
 
-                {/* Show only Profile menu when in profile section */}
+                {/* Membership Section always show */}
                 {isProfileSection && (
+                    <li className="sidebar-section">
+                        <span className="sidebar-section-title">Membership</span>
+                        <ul className="sidebar-submenu">
+                            <li>
+                                <NavLink
+                                    to="/membership"
+                                    className={({ isActive }) => isActive ? 'active' : ''}
+                                    end
+                                >
+                                    <i className="bi bi-ticket-perforated"></i>
+                                    <span>Membership Plans</span>
+                                </NavLink>
+                            </li>
+                        </ul>
+                    </li>
+                )}
+
+                {/* Account Section only show when logged in */}
+                {isProfileSection && isAuthenticated && (
                     <li className="sidebar-section">
                         <span className="sidebar-section-title">Account</span>
                         <ul className="sidebar-submenu">
@@ -116,6 +141,15 @@ const Sidebar = () => {
                                 >
                                     <i className="bi bi-person"></i>
                                     <span>My Profile</span>
+                                </NavLink>
+                            </li>
+                            <li>
+                                <NavLink
+                                    to="/payment/history"
+                                    className={({ isActive }) => isActive ? 'active' : ''}
+                                >
+                                    <i className="bi bi-credit-card"></i>
+                                    <span>Payment History</span>
                                 </NavLink>
                             </li>
                             <li>

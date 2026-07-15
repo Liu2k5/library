@@ -4,25 +4,22 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-
 import com.sbagroup5.library.entity.user.Role;
 import com.sbagroup5.library.entity.user.User;
 import com.sbagroup5.library.repository.user.RoleRepository;
 import com.sbagroup5.library.repository.user.UserRepository;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import lombok.RequiredArgsConstructor;
+
+@RequiredArgsConstructor
 @Service
 public class AccountService {
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private RoleRepository roleRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public List<User> getAllUsers() {
         return userRepository.findAll();

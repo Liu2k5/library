@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sbagroup5.library.record.OverallStatsResponse;
-import com.sbagroup5.library.service.dashboardadmin.DashboardService;
+import com.sbagroup5.library.service.admin.DashboardService;
 
 import lombok.RequiredArgsConstructor;
 

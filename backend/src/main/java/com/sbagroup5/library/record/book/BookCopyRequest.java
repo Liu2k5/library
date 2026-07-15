@@ -4,9 +4,6 @@ import lombok.Data;
 
 @Data
 public class BookCopyRequest {
-
     private String barcode;
-
     private String location;
-
 }

@@ -1,4 +1,5 @@
 // src/components/common/Navbar.jsx
+// src/components/common/Navbar.jsx
 import { NavDropdown } from 'react-bootstrap';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -13,10 +14,13 @@ const Navbar = () => {
         navigate('/login');
     };
 
-    // Check if we're in a specific section
     const isLibrarianActive = location.pathname.startsWith('/librarian');
     const isAdminActive = location.pathname.startsWith('/admin');
-    const isProfileActive = location.pathname.startsWith('/profile') || location.pathname.startsWith('/change-password');
+    const isProfileActive = [
+        '/profile',
+        '/payment/history',
+        '/change-password',
+    ].some(path => location.pathname.startsWith(path));
 
     return (
         <nav className="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
@@ -37,11 +41,23 @@ const Navbar = () => {
                     <span className="navbar-toggler-icon"></span>
                 </button>
                 <div className="collapse navbar-collapse" id="navbarNav">
-                    {isAuthenticated ? (
-                        <>
-                            <ul className="navbar-nav me-auto">
+                    <ul className="navbar-nav me-auto">
+                        {/* Membership Menu - Luôn hiển thị */}
+                        <li className="nav-item">
+                            <Link
+                                className={`nav-link text-white ${location.pathname === '/membership' ? 'active' : ''}`}
+                                to="/membership"
+                            >
+                                <i className="bi bi-ticket-perforated me-1"></i>
+                                Membership
+                            </Link>
+                        </li>
+
+                        {/* Các menu chỉ hiển thị khi đã đăng nhập */}
+                        {isAuthenticated && (
+                            <>
                                 {/* Librarian Menu */}
-                                {(user?.role === 'ADMIN' || user?.role === 'LIBRARIAN') && (
+                                {(user?.role === 'LIBRARIAN') && (
                                     <li className="nav-item">
                                         <NavDropdown
                                             title={
@@ -84,7 +100,6 @@ const Navbar = () => {
                                                 <i className="bi bi-bar-chart me-1"></i>
                                                 Overall
                                             </NavDropdown.Item>
-                                            <NavDropdown.Divider />
                                             <NavDropdown.Item as={Link} to="/admin/accounts" active={isAdminActive && location.pathname === '/admin/accounts'}>
                                                 <i className="bi bi-people me-1"></i>
                                                 Account Manager
@@ -100,8 +115,12 @@ const Navbar = () => {
                                         </NavDropdown>
                                     </li>
                                 )}
-                            </ul>
+                            </>
+                        )}
+                    </ul>
 
+                    {isAuthenticated ? (
+                        <>
                             {/* Account Dropdown */}
                             <NavDropdown
                                 title={
@@ -120,6 +139,10 @@ const Navbar = () => {
                                 <NavDropdown.Item as={Link} to="/profile" active={isProfileActive && location.pathname === '/profile'}>
                                     <i className="bi bi-person me-2"></i>
                                     Profile
+                                </NavDropdown.Item>
+                                <NavDropdown.Item as={Link} to="/payment/history" active={isProfileActive && location.pathname === '/payment/history'}>
+                                    <i className="bi bi-credit-card me-2"></i>
+                                    Payment History
                                 </NavDropdown.Item>
                                 <NavDropdown.Item as={Link} to="/change-password" active={isProfileActive && location.pathname === '/change-password'}>
                                     <i className="bi bi-key me-2"></i>
