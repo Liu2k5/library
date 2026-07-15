@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { notificationApi } from '../../api/notificationApi';
+import { accountApi } from '../../api/accountApi';
 import './AdminStyles.css';
 
 const NOTIFICATION_TYPES = ['INFO', 'SUCCESS', 'WARNING', 'FAILURE', 'ERROR'];
@@ -25,6 +26,7 @@ export default function NotificationManage() {
     const [form, setForm] = useState(EMPTY_FORM);
     const [saving, setSaving] = useState(false);
     const [formError, setFormError] = useState('');
+    const [users, setUsers] = useState([]);
 
     const loadAll = () => {
         setStatus('loading');
@@ -37,7 +39,14 @@ export default function NotificationManage() {
             .catch(() => setStatus('error'));
     };
 
-    useEffect(loadAll, []);
+    useEffect(() => {
+        loadAll();
+
+        accountApi
+            .getAll()
+            .then((res) => setUsers(res.data || []))
+            .catch(() => setUsers([]));
+    }, []);
 
     const isEditing = form.id !== null;
     const resetForm = () => setForm(EMPTY_FORM);
@@ -109,16 +118,25 @@ export default function NotificationManage() {
                     <form onSubmit={handleSubmit}>
                         <div className="form-grid">
                             <div className="form-group">
-                                <label>Recipient Username</label>
-                                <input
-                                    type="text"
+                                <label>Recipient User</label>
+                                <select
                                     className="form-control"
                                     value={form.username}
                                     onChange={(e) => setForm({ ...form, username: e.target.value })}
-                                    placeholder="e.g., john_doe"
                                     required
                                     disabled={isEditing}
-                                />
+                                >
+                                    <option value="">-- Select User --</option>
+
+                                    {users.map((user) => (
+                                        <option
+                                            key={user.username}
+                                            value={user.username}
+                                        >
+                                            {user.fullName} ({user.username})
+                                        </option>
+                                    ))}
+                                </select>
                             </div>
                             <div className="form-group">
                                 <label>Type</label>
