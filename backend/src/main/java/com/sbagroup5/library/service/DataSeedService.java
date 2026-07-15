@@ -1,5 +1,7 @@
 package com.sbagroup5.library.service;
 
+import jakarta.annotation.PostConstruct;
+
 import com.sbagroup5.library.entity.book.Author;
 import com.sbagroup5.library.entity.book.Book;
 import com.sbagroup5.library.entity.book.BookCopy;
@@ -13,13 +15,12 @@ import com.sbagroup5.library.repository.book.BookCopyRepository;
 import com.sbagroup5.library.repository.book.BookRepository;
 import com.sbagroup5.library.repository.book.CategoryRepository;
 import com.sbagroup5.library.repository.user.MembershipTypeRepository;
-import jakarta.annotation.PostConstruct;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Service tạo dữ liệu mẫu cho việc chạy thử.
@@ -58,8 +59,10 @@ public class DataSeedService {
         // 2. Tạo tác giả
         Author author1 = createAuthor("Nguyễn Nhật Ánh", "Nhà văn Việt Nam chuyên viết cho thiếu nhi và tuổi mới lớn");
         Author author2 = createAuthor("Paulo Coelho", "Nhà văn người Brazil, nổi tiếng với cuốn 'Nhà giả kim'");
-        Author author3 = createAuthor("Robert Kiyosaki", "Tác giả người Mỹ, nổi tiếng với bộ sách 'Cha giàu cha nghèo'");
-        Author author4 = createAuthor("Yuval Noah Harari", "Nhà sử học người Israel, tác giả bộ sách về lịch sử loài người");
+        Author author3 = createAuthor("Robert Kiyosaki",
+                "Tác giả người Mỹ, nổi tiếng với bộ sách 'Cha giàu cha nghèo'");
+        Author author4 = createAuthor("Yuval Noah Harari",
+                "Nhà sử học người Israel, tác giả bộ sách về lịch sử loài người");
         Author author5 = createAuthor("J.K. Rowling", "Nhà văn người Anh, tác giả bộ truyện Harry Potter");
         Author author6 = createAuthor("Dale Carnegie", "Nhà văn Mỹ, chuyên gia về kỹ năng sống và giao tiếp");
         Author author7 = createAuthor("Trần Quốc Vượng", "Nhà sử học, khảo cổ học nổi tiếng Việt Nam");
@@ -75,10 +78,12 @@ public class DataSeedService {
         Book book3 = createBook(kinhTe, author3, "Cha giàu cha nghèo", 120000, "9786047654321", "NXB Trẻ", 2021,
                 "Cuốn sách tài chính cá nhân kinh điển, dạy về tư duy làm giàu và quản lý tiền bạc.");
 
-        Book book4 = createBook(lichSu, author4, "Sapiens: Lược sử loài người", 150000, "9786046543210", "NXB Tri thức", 2020,
+        Book book4 = createBook(lichSu, author4, "Sapiens: Lược sử loài người", 150000, "9786046543210", "NXB Tri thức",
+                2020,
                 "Cuốn sách kể về lịch sử tiến hóa của loài người từ thời kỳ đồ đá đến thời đại công nghệ.");
 
-        Book book5 = createBook(thieuNhi, author5, "Harry Potter và Hòn đá phù thủy", 135000, "9786045432109", "NXB Trẻ", 2018,
+        Book book5 = createBook(thieuNhi, author5, "Harry Potter và Hòn đá phù thủy", 135000, "9786045432109",
+                "NXB Trẻ", 2018,
                 "Tập đầu tiên trong bộ truyện Harry Potter kể về cậu bé phù thủy nổi tiếng.");
 
         Book book6 = createBook(tamLy, author6, "Đắc nhân tâm", 89000, "9786044321098", "NXB Tổng hợp", 2022,
@@ -87,10 +92,12 @@ public class DataSeedService {
         Book book7 = createBook(lichSu, author7, "Việt Nam sử lược", 180000, "9786043210987", "NXB Văn hóa", 2017,
                 "Bộ sử quan trọng nhất về lịch sử Việt Nam do học giả Trần Trọng Kim biên soạn.");
 
-        Book book8 = createBook(congNghe, author8, "Thiết kế hệ thống dữ liệu", 250000, "9786042109876", "NXB Công nghệ", 2021,
+        Book book8 = createBook(congNghe, author8, "Thiết kế hệ thống dữ liệu", 250000, "9786042109876",
+                "NXB Công nghệ", 2021,
                 "Cuốn sách chuyên sâu về thiết kế hệ thống phân tán, cơ sở dữ liệu và xử lý dữ liệu lớn.");
 
-        Book book9 = createBook(khoaHoc, author4, "Homo Deus: Lược sử tương lai", 165000, "9786041098765", "NXB Tri thức", 2021,
+        Book book9 = createBook(khoaHoc, author4, "Homo Deus: Lược sử tương lai", 165000, "9786041098765",
+                "NXB Tri thức", 2021,
                 "Cuốn sách tiếp nối Sapiens, dự đoán tương lai loài người trong kỷ nguyên công nghệ.");
 
         Book book10 = createBook(kinhTe, author3, "Dạy con làm giàu", 110000, "9786030987654", "NXB Trẻ", 2022,
@@ -131,7 +138,7 @@ public class DataSeedService {
     }
 
     private Book createBook(Category category, Author author, String title, Integer price,
-                            String isbn, String publisher, Integer publishYear, String description) {
+            String isbn, String publisher, Integer publishYear, String description) {
         Book book = Book.builder()
                 .category(category)
                 .author(author)

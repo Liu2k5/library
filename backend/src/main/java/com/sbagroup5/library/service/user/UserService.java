@@ -38,6 +38,14 @@ public class UserService {
     }
 
     /**
+     * Get user by username
+     */
+    public User getUserByUsername(String username) {
+        return userRepository.findById(username)
+                .orElseThrow(() -> new BusinessException("User not found", "USER_NOT_FOUND"));
+    }
+
+    /**
      * Update user profile (fullName, phone, address only)
      */
     @Transactional
