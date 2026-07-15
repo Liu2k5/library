@@ -1,4 +1,4 @@
-package com.sbagroup5.library.service.dashboardadmin;
+package com.sbagroup5.library.service.admin;
 
 import org.springframework.stereotype.Service;
 
