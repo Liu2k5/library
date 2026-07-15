@@ -25,17 +25,12 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
     (response) => response,
     (error) => {
-        if (error.response?.status === 401) {
+        if ([401, 403].includes(error.response?.status)) {
             localStorage.removeItem('user');
             if (!window.location.pathname.includes('/login')) {
                 window.location.href = '/login';
             }
         }
-
-        if (error.response?.status === 403) {
-            console.warn('Access forbidden - Session may have expired');
-        }
-
         return Promise.reject(error);
     }
 );
