@@ -100,7 +100,6 @@ const Navbar = () => {
                                                 <i className="bi bi-bar-chart me-1"></i>
                                                 Overall
                                             </NavDropdown.Item>
-                                            <NavDropdown.Divider />
                                             <NavDropdown.Item as={Link} to="/admin/accounts" active={isAdminActive && location.pathname === '/admin/accounts'}>
                                                 <i className="bi bi-people me-1"></i>
                                                 Account Manager

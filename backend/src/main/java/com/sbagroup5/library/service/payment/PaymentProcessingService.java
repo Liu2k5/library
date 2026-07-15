@@ -289,7 +289,7 @@ public class PaymentProcessingService {
                     payment.getType(),
                     payment.getDate());
 
-            emailService.sendEmail(user.getEmail(), subject, body);
+            emailService.sendSimpleEmail(user.getEmail(), subject, body);
         } catch (Exception e) {
             log.error("Failed to send payment confirmation email to {}: {}", user.getEmail(), e.getMessage());
         }

@@ -6,6 +6,7 @@ import com.sbagroup5.library.entity.book.borrow.Borrow;
 import com.sbagroup5.library.entity.book.borrow.BorrowDetail;
 import com.sbagroup5.library.entity.book.borrow.Fine;
 import com.sbagroup5.library.entity.book.borrow.FineStatus;
+import com.sbagroup5.library.entity.notification.NotificationType;
 import com.sbagroup5.library.entity.user.Membership;
 import com.sbagroup5.library.entity.user.MembershipType;
 import com.sbagroup5.library.entity.user.User;
@@ -21,21 +22,27 @@ import com.sbagroup5.library.repository.book.borrow.BorrowRepository;
 import com.sbagroup5.library.repository.book.borrow.FineRepository;
 import com.sbagroup5.library.repository.user.MembershipRepository;
 import com.sbagroup5.library.repository.user.UserRepository;
+import com.sbagroup5.library.service.EmailService;
+import com.sbagroup5.library.service.notification.NotificationService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class BorrowService {
 
     /** Số ngày mượn mặc định khi thành viên chưa có gói. */
@@ -52,22 +59,27 @@ public class BorrowService {
     private final BookCopyRepository bookCopyRepository;
     private final UserRepository userRepository;
     private final MembershipRepository membershipRepository;
+    private final NotificationService notificationService;
+    private final EmailService emailService;
+
+    private static final SimpleDateFormat DATE_FMT = new SimpleDateFormat("dd/MM/yyyy HH:mm");
 
     /**
      * Tạo phiếu mượn sách cho một thành viên.
      */
     @Transactional
     public BorrowResponse createBorrow(CreateBorrowRequest request) {
-        if (request == null || request.username() == null || request.username().isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Thiếu thông tin thành viên");
+        if (request == null || request.email() == null || request.email().isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Thiếu email thành viên");
         }
         if (request.barcodes() == null || request.barcodes().isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Phiếu mượn phải có ít nhất một cuốn sách");
         }
 
-        User user = userRepository.findById(request.username())
+        String email = request.email().trim();
+        User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "Không tìm thấy thành viên: " + request.username()));
+                        HttpStatus.NOT_FOUND, "Không tìm thấy thành viên với email: " + email));
 
         // Loại bỏ mã vạch trùng lặp, giữ nguyên thứ tự
         Set<String> barcodes = new LinkedHashSet<>(request.barcodes());
@@ -129,6 +141,17 @@ public class BorrowService {
                     .returnDate(null)
                     .build()));
         }
+
+        // Thông báo trong hệ thống + gửi email phiếu mượn cho khách
+        String emailBody = buildBorrowEmail(user, borrow, details);
+        notificationService.create(user,
+                "Mượn sách thành công",
+                "Bạn đã mượn " + details.size() + " cuốn sách (phiếu #" + borrow.getId()
+                        + "). Hạn trả: " + DATE_FMT.format(borrow.getDueDate()) + ".",
+                NotificationType.SUCCESS);
+        sendEmailQuietly(user.getEmail(),
+                "[Thư viện] Phiếu mượn sách #" + borrow.getId(),
+                emailBody);
 
         return toBorrowResponse(borrow, details);
     }
@@ -202,6 +225,18 @@ public class BorrowService {
             borrowRepository.save(borrow);
         }
 
+        // Chỉ tạo thông báo trong hệ thống khi trả sách (không gửi email)
+        StringBuilder note = new StringBuilder("Bạn đã trả " + returnedItems.size()
+                + " cuốn sách thành công (phiếu #" + borrow.getId() + ").");
+        if (!fines.isEmpty()) {
+            long total = fines.stream().mapToLong(FineResponse::amount).sum();
+            note.append(" Phát sinh phí phạt trễ hạn: ").append(total).append(" VND.");
+        }
+        notificationService.create(borrow.getUser(),
+                "Trả sách thành công",
+                note.toString(),
+                NotificationType.SUCCESS);
+
         return new ReturnResponse(borrow.getId(), fullyReturned, returnedItems, fines);
     }
 
@@ -214,10 +249,14 @@ public class BorrowService {
     }
 
     @Transactional(readOnly = true)
-    public List<BorrowResponse> listBorrowsByUser(String username) {
-        User user = userRepository.findById(username)
+    public List<BorrowResponse> listBorrowsByEmail(String email) {
+        if (email == null || email.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Thiếu email thành viên");
+        }
+        String trimmed = email.trim();
+        User user = userRepository.findByEmail(trimmed)
                 .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "Không tìm thấy thành viên: " + username));
+                        HttpStatus.NOT_FOUND, "Không tìm thấy thành viên với email: " + trimmed));
         List<BorrowResponse> result = new ArrayList<>();
         for (Borrow borrow : borrowRepository.findByUserOrderByBorrowDateDesc(user)) {
             result.add(toBorrowResponse(borrow, borrowDetailRepository.findByBorrow(borrow)));
@@ -275,6 +314,42 @@ public class BorrowService {
             }
         }
         return new BorrowItemResponse(detail.getId(), copyId, barcode, title, detail.getReturnDate());
+    }
+
+    /** Soạn nội dung email phiếu mượn gửi cho khách. */
+    private String buildBorrowEmail(User user, Borrow borrow, List<BorrowDetail> details) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Kính gửi ").append(user.getFullName() != null ? user.getFullName() : user.getUsername())
+                .append(",\n\n");
+        sb.append("Bạn đã mượn sách thành công tại thư viện. Thông tin phiếu mượn:\n");
+        sb.append("- Mã phiếu: #").append(borrow.getId()).append("\n");
+        sb.append("- Ngày mượn: ").append(DATE_FMT.format(borrow.getBorrowDate())).append("\n");
+        sb.append("- Hạn trả: ").append(DATE_FMT.format(borrow.getDueDate())).append("\n");
+        sb.append("- Danh sách sách (").append(details.size()).append(" cuốn):\n");
+        for (BorrowDetail detail : details) {
+            String title = (detail.getCopy() != null && detail.getCopy().getBook() != null)
+                    ? detail.getCopy().getBook().getTitle() : "(không rõ)";
+            String barcode = detail.getCopy() != null ? detail.getCopy().getBarcode() : "";
+            sb.append("    + ").append(title).append(" [mã: ").append(barcode).append("]\n");
+        }
+        sb.append("\nVui lòng trả sách đúng hạn để tránh bị phạt trễ hạn.\n");
+        sb.append("Trân trọng,\nThư viện.");
+        return sb.toString();
+    }
+
+    /** Gửi email không chặn luồng và không làm hỏng giao dịch nếu SMTP lỗi. */
+    private void sendEmailQuietly(String to, String subject, String body) {
+        if (to == null || to.isBlank()) {
+            log.warn("Bỏ qua gửi email: người dùng không có địa chỉ email");
+            return;
+        }
+        CompletableFuture.runAsync(() -> {
+            try {
+                emailService.sendSimpleEmail(to, subject, body);
+            } catch (Exception e) {
+                log.error("Gửi email tới {} thất bại: {}", to, e.getMessage());
+            }
+        });
     }
 
     private FineResponse toFineResponse(Fine fine) {

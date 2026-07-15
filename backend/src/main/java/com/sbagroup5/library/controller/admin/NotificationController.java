@@ -23,8 +23,8 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/admin/notifications")
 @RequiredArgsConstructor
 public class NotificationController {
-    private NotificationService notificationService;
-    private UserRepository userRepository;
+    private final NotificationService notificationService;
+    private final UserRepository userRepository;
 
     @GetMapping
     public List<Notification> getAll() {

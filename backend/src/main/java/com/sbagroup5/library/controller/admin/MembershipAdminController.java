@@ -22,7 +22,7 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/admin/membershiptypes")
 public class MembershipAdminController {
 
-    private MembershipTypeService membershipTypeService;
+    private final MembershipTypeService membershipTypeService;
 
     @GetMapping
     public List<MembershipType> getAll() {

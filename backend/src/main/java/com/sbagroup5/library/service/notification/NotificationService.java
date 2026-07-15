@@ -24,6 +24,22 @@ public class NotificationService {
     private final NotificationRepository notificationRepository;
     private final EmailService emailService;
 
+    /**
+     * Tạo và lưu một thông báo cho người dùng.
+     */
+    public Notification create(User user, String title, String message, NotificationType type) {
+        return notificationRepository.save(Notification.builder()
+                .user(user)
+                .title(title)
+                .message(message)
+                .type(type)
+                .isRead(false)
+                .createdAt(new Date())
+                .build());
+    }
+
+    // ----- Quản trị thông báo (admin) -----
+
     public List<Notification> getAllNotifications() {
         return notificationRepository.findAll();
     }
@@ -112,7 +128,7 @@ public class NotificationService {
 
     private void sendEmail(User user, String subject, String body) {
         try {
-            emailService.sendEmail(user.getEmail(), subject, body);
+            emailService.sendSimpleEmail(user.getEmail(), subject, body);
             log.info("Sent email to: {}", user.getEmail());
         } catch (Exception e) {
             log.error("Failed to send email to {}: {}", user.getEmail(), e.getMessage());
