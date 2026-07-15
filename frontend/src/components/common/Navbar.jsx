@@ -80,6 +80,15 @@ const Navbar = () => {
                                                 <i className="bi bi-tags me-1"></i>
                                                 Categories
                                             </NavDropdown.Item>
+                                            <NavDropdown.Divider />
+                                            <NavDropdown.Item as={Link} to="/librarian/borrows" active={location.pathname === '/librarian/borrows'}>
+                                                <i className="bi bi-journal-plus me-1"></i>
+                                                Create Borrow Record
+                                            </NavDropdown.Item>
+                                            <NavDropdown.Item as={Link} to="/librarian/returns" active={location.pathname === '/librarian/returns'}>
+                                                <i className="bi bi-journal-arrow-up me-1"></i>
+                                                Return Books
+                                            </NavDropdown.Item>
                                         </NavDropdown>
                                     </li>
                                 )}

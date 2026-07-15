@@ -22,6 +22,8 @@ import BookForm from "./components/librarian/BookForm";
 import BookList from "./components/librarian/BookList";
 import CategoryForm from './components/librarian/CategoryForm';
 import CategoryList from './components/librarian/CategoryList';
+import BorrowForm from './components/librarian/BorrowForm';
+import ReturnBook from './components/librarian/ReturnBook';
 
 // Admin Components
 import AccountManage from './components/admin/AccountManage';
@@ -129,6 +131,8 @@ function App() {
                                             <Route path="books/:bookId/copies" element={<BookCopyList />} />
                                             <Route path="books/:bookId/copies/add" element={<BookCopyForm />} />
                                             <Route path="bookcopies/edit/:id" element={<BookCopyForm />} />
+                                            <Route path="borrows" element={<BorrowForm />} />
+                                            <Route path="returns" element={<ReturnBook />} />
                                         </Routes>
                                     </PrivateRoute>
                                 }
