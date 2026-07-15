@@ -38,4 +38,9 @@ public class EmailService {
         }
 
     }
+
+    /** Bí danh của {@link #sendEmail} dùng cho các luồng phiếu mượn/thanh toán. */
+    public void sendSimpleEmail(String to, String subject, String text) {
+        sendEmail(to, subject, text);
+    }
 }

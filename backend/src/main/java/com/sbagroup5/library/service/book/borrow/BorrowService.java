@@ -77,11 +77,9 @@ public class BorrowService {
         }
 
         String email = request.email().trim();
-        User user = userRepository.findByEmail(email);
-        if (user == null) {
-            throw new ResponseStatusException(
-                    HttpStatus.NOT_FOUND, "Không tìm thấy thành viên với email: " + email);
-        }
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Không tìm thấy thành viên với email: " + email));
 
         // Loại bỏ mã vạch trùng lặp, giữ nguyên thứ tự
         Set<String> barcodes = new LinkedHashSet<>(request.barcodes());
@@ -255,11 +253,10 @@ public class BorrowService {
         if (email == null || email.isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Thiếu email thành viên");
         }
-        User user = userRepository.findByEmail(email.trim());
-        if (user == null) {
-            throw new ResponseStatusException(
-                    HttpStatus.NOT_FOUND, "Không tìm thấy thành viên với email: " + email.trim());
-        }
+        String trimmed = email.trim();
+        User user = userRepository.findByEmail(trimmed)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Không tìm thấy thành viên với email: " + trimmed));
         List<BorrowResponse> result = new ArrayList<>();
         for (Borrow borrow : borrowRepository.findByUserOrderByBorrowDateDesc(user)) {
             result.add(toBorrowResponse(borrow, borrowDetailRepository.findByBorrow(borrow)));
