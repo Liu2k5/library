@@ -1,7 +1,7 @@
 package com.sbagroup5.library.controller.book;
 
-import com.sbagroup5.library.DTO.book.BookCopyRequest;
-import com.sbagroup5.library.DTO.book.BookCopyResponse;
+import com.sbagroup5.library.record.book.BookCopyRequest;
+import com.sbagroup5.library.record.book.BookCopyResponse;
 import com.sbagroup5.library.service.book.BookCopyService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

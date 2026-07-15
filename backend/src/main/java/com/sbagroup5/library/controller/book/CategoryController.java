@@ -1,7 +1,7 @@
 package com.sbagroup5.library.controller.book;
 
-import com.sbagroup5.library.DTO.book.CategoryRequest;
-import com.sbagroup5.library.DTO.book.CategoryResponse;
+import com.sbagroup5.library.record.book.CategoryResponse;
+import com.sbagroup5.library.record.book.CategoryRequest;
 import com.sbagroup5.library.service.book.CategoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

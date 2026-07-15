@@ -1,4 +1,4 @@
-package com.sbagroup5.library.DTO.book;
+package com.sbagroup5.library.record.book;
 
 import lombok.Builder;
 import lombok.Data;

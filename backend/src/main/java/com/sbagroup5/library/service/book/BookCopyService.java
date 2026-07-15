@@ -1,7 +1,7 @@
 package com.sbagroup5.library.service.book;
 
-import com.sbagroup5.library.DTO.book.BookCopyRequest;
-import com.sbagroup5.library.DTO.book.BookCopyResponse;
+import com.sbagroup5.library.record.book.BookCopyRequest;
+import com.sbagroup5.library.record.book.BookCopyResponse;
 import com.sbagroup5.library.entity.book.Book;
 import com.sbagroup5.library.entity.book.BookCopy;
 import com.sbagroup5.library.entity.book.CopyStatus;

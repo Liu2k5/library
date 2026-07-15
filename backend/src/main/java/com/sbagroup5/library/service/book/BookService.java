@@ -1,7 +1,7 @@
 package com.sbagroup5.library.service.book;
 
-import com.sbagroup5.library.DTO.book.BookRequest;
-import com.sbagroup5.library.DTO.book.BookResponse;
+import com.sbagroup5.library.record.book.BookRequest;
+import com.sbagroup5.library.record.book.BookResponse;
 import com.sbagroup5.library.entity.book.Author;
 import com.sbagroup5.library.entity.book.Book;
 import com.sbagroup5.library.entity.book.BookStatus;
