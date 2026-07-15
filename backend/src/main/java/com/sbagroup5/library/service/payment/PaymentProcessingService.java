@@ -2,8 +2,9 @@ package com.sbagroup5.library.service.payment;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
 import com.sbagroup5.library.entity.payment.Bill;
@@ -16,6 +17,7 @@ import com.sbagroup5.library.entity.user.MembershipType;
 import com.sbagroup5.library.entity.user.User;
 import com.sbagroup5.library.entity.user.UserStatus;
 import com.sbagroup5.library.exception.BusinessException;
+import com.sbagroup5.library.record.payment.BillResponse;
 import com.sbagroup5.library.record.payment.PaymentRequest;
 import com.sbagroup5.library.record.payment.PaymentResponse;
 import com.sbagroup5.library.repository.book.borrow.FineRepository;
@@ -25,21 +27,20 @@ import com.sbagroup5.library.repository.user.MembershipRepository;
 import com.sbagroup5.library.repository.user.MembershipTypeRepository;
 import com.sbagroup5.library.repository.user.UserRepository;
 import com.sbagroup5.library.service.EmailService;
+import com.sbagroup5.library.service.notification.NotificationService;
+import com.sbagroup5.library.service.user.MembershipService;
 
+import org.springframework.context.annotation.Lazy;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import vn.payos.PayOS;
 import vn.payos.model.v2.paymentRequests.CreatePaymentLinkRequest;
 
-/**
- * Dịch vụ xử lý thanh toán trực tuyến qua cổng PayOS.
- * Service này tách biệt, không ghi đè lên PaymentService cũ.
- */
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class PaymentProcessingService {
 
@@ -51,16 +52,56 @@ public class PaymentProcessingService {
     private final MembershipTypeRepository membershipTypeRepository;
     private final PayOS payOS;
     private final EmailService emailService;
+    private final NotificationService notificationService;
 
-    /**
-     * Tạo giao dịch thanh toán mới và trả về đường dẫn thanh toán PayOS.
-     */
+    // Use setter injection with @Lazy to break circular dependency
+    private MembershipService membershipService;
+
+    public PaymentProcessingService(
+            PaymentRepository paymentRepository,
+            BillRepository billRepository,
+            FineRepository fineRepository,
+            UserRepository userRepository,
+            MembershipRepository membershipRepository,
+            MembershipTypeRepository membershipTypeRepository,
+            PayOS payOS,
+            EmailService emailService,
+            NotificationService notificationService,
+            @Lazy MembershipService membershipService) {
+        this.paymentRepository = paymentRepository;
+        this.billRepository = billRepository;
+        this.fineRepository = fineRepository;
+        this.userRepository = userRepository;
+        this.membershipRepository = membershipRepository;
+        this.membershipTypeRepository = membershipTypeRepository;
+        this.payOS = payOS;
+        this.emailService = emailService;
+        this.notificationService = notificationService;
+        this.membershipService = membershipService;
+    }
+
+    // Temporary storage for membership type ID during payment creation
+    private final Map<Long, Long> paymentMembershipTypeMap = new HashMap<>();
+    // Temporary storage for renewal details
+    private final Map<Long, RenewalDetails> paymentRenewalMap = new HashMap<>();
+
     @Transactional
     public PaymentResponse createPayment(String username, PaymentRequest request) {
         User user = userRepository.findById(username)
-                .orElseThrow(() -> new BusinessException("Không tìm thấy người dùng", "USER_NOT_FOUND"));
+                .orElseThrow(() -> new BusinessException("User not found", "USER_NOT_FOUND"));
 
-        // 1. Tạo Payment record
+        // For membership payments, validate business rules
+        if (request.type() == PaymentType.MEMBERSHIP) {
+            validateMembershipPayment(user, request);
+        }
+
+        // For fine payments, validate fine exists
+        if (request.type() == PaymentType.FINE && request.fineId() != null) {
+            if (!fineRepository.existsById(request.fineId())) {
+                throw new BusinessException("Fine not found", "FINE_NOT_FOUND");
+            }
+        }
+
         long orderCode = generateOrderCode();
         Payment payment = Payment.builder()
                 .id(orderCode)
@@ -74,31 +115,16 @@ public class PaymentProcessingService {
 
         paymentRepository.save(payment);
 
-        // 2. Tạo link thanh toán PayOS
-        String checkoutUrl;
-        try {
-            CreatePaymentLinkRequest paymentData = CreatePaymentLinkRequest.builder()
-                    .orderCode(orderCode)
-                    .amount(request.amount())
-                    .expiredAt(LocalDateTime.now().plusMinutes(15)
-                            .atZone(ZoneId.systemDefault()).toEpochSecond())
-                    .description("THANHTOAN" + orderCode)
-                    .returnUrl("http://localhost:3000/payment/success?orderCode=" + orderCode)
-                    .cancelUrl("http://localhost:3000/payment/cancel?orderCode=" + orderCode)
-                    .build();
-
-            checkoutUrl = payOS.paymentRequests().create(paymentData).getCheckoutUrl();
-            payment.setPaymentUrl(checkoutUrl);
-            paymentRepository.save(payment);
-
-        } catch (Exception e) {
-            log.error("Lỗi tạo PayOS payment link: {}", e.getMessage(), e);
-            payment.setStatus(PaymentStatus.FAILED);
-            paymentRepository.save(payment);
-            throw new BusinessException("Không thể tạo link thanh toán: " + e.getMessage(), "PAYOS_ERROR");
+        // Store membership type ID for later use
+        if (request.type() == PaymentType.MEMBERSHIP && request.membershipTypeId() != null) {
+            paymentMembershipTypeMap.put(orderCode, request.membershipTypeId());
         }
 
-        log.info("Đã tạo payment {} cho user {} với số tiền {}", orderCode, username, request.amount());
+        String checkoutUrl = createPayOSPaymentLink(orderCode, request.amount());
+        payment.setPaymentUrl(checkoutUrl);
+        paymentRepository.save(payment);
+
+        log.info("Created payment {} for user {} with amount {}", orderCode, username, request.amount());
 
         return new PaymentResponse(
                 payment.getId(),
@@ -109,27 +135,64 @@ public class PaymentProcessingService {
                 payment.getMethod(),
                 payment.getDate(),
                 checkoutUrl,
-                "Vui lòng hoàn tất thanh toán qua cổng PayOS");
+                "Please complete payment via PayOS");
     }
 
-    /**
-     * Xác nhận thanh toán thành công (được gọi từ webhook).
-     */
+    private void validateMembershipPayment(User user, PaymentRequest request) {
+        // Check if user already has a pending payment
+        if (paymentRepository.existsByUserAndTypeAndStatus(user, PaymentType.MEMBERSHIP, PaymentStatus.PENDING)) {
+            throw new BusinessException("You have a pending payment. Please complete or cancel it first.",
+                    "PENDING_PAYMENT_EXISTS");
+        }
+
+        // Check if user has membership
+        Membership existingMembership = membershipRepository.findByUser(user).orElse(null);
+
+        if (existingMembership != null) {
+            // If user has membership, check if can renew
+            if (!membershipService.canRenew(existingMembership)) {
+                throw new BusinessException(
+                        "Cannot renew membership. It must be within 3 days of expiration.",
+                        "CANNOT_RENEW");
+            }
+        }
+    }
+
+    private String createPayOSPaymentLink(Long orderCode, Long amount) {
+        try {
+            CreatePaymentLinkRequest paymentData = CreatePaymentLinkRequest.builder()
+                    .orderCode(orderCode)
+                    .amount(amount)
+                    .expiredAt(LocalDateTime.now().plusMinutes(15)
+                            .atZone(ZoneId.systemDefault()).toEpochSecond())
+                    .description("THANHTOAN" + orderCode)
+                    .returnUrl("http://localhost:3000/payment/success?orderCode=" + orderCode)
+                    .cancelUrl("http://localhost:3000/payment/cancel?orderCode=" + orderCode)
+                    .build();
+
+            return payOS.paymentRequests().create(paymentData).getCheckoutUrl();
+
+        } catch (Exception e) {
+            log.error("Error creating PayOS payment link: {}", e.getMessage(), e);
+            throw new BusinessException("Cannot create payment link: " + e.getMessage(), "PAYOS_ERROR");
+        }
+    }
+
     @Transactional
-    public void confirmPayment(Long paymentId, String transactionCode) {
+    public void handleWebhook(Long paymentId, String transactionCode) {
         Payment payment = paymentRepository.findById(paymentId)
-                .orElseThrow(() -> new BusinessException("Không tìm thấy giao dịch", "PAYMENT_NOT_FOUND"));
+                .orElseThrow(() -> new BusinessException("Payment not found", "PAYMENT_NOT_FOUND"));
 
         if (payment.getStatus() == PaymentStatus.COMPLETED) {
-            log.warn("Payment {} đã được xác nhận trước đó, bỏ qua.", paymentId);
+            log.warn("Payment {} already completed, skipping webhook", paymentId);
             return;
         }
 
-        // Cập nhật trạng thái Payment
+        // Update payment status
         payment.setStatus(PaymentStatus.COMPLETED);
         paymentRepository.save(payment);
 
-        // Tạo Bill record
+        // Create bill
         Bill bill = Bill.builder()
                 .payment(payment)
                 .gatewayName("PayOS")
@@ -139,114 +202,167 @@ public class PaymentProcessingService {
                 .build();
         billRepository.save(bill);
 
-        // Xử lý hậu quả theo loại thanh toán
+        // Process post-payment actions
         processPostPayment(payment);
 
-        log.info("Đã xác nhận thanh toán {} thành công. Transaction: {}", paymentId, transactionCode);
+        log.info("Webhook processed for payment {} successfully", paymentId);
     }
 
-    /**
-     * Xử lý sau khi thanh toán thành công.
-     */
     private void processPostPayment(Payment payment) {
         User user = payment.getUser();
 
-        if (payment.getType() == PaymentType.FINE) {
-            // Thanh toán tiền phạt - cập nhật tất cả fine UNPAID của user thành PAID
-            // (thực tế nên mapping cụ thể, nhưng tạm thời xử lý tổng quát)
-            log.info("Đã thanh toán tiền phạt cho user {}", user.getUsername());
-            // Lưu ý: cần cơ chế mapping fineId trong payment, hiện tại tạm để vậy
-
-        } else if (payment.getType() == PaymentType.MEMBERSHIP) {
-            // Thanh toán membership - kích hoạt/gia hạn membership cho user
-            activateMembership(user);
-            log.info("Đã kích hoạt membership cho user {}", user.getUsername());
+        if (payment.getType() == PaymentType.MEMBERSHIP) {
+            processMembershipPayment(payment);
+        } else if (payment.getType() == PaymentType.FINE) {
+            processFinePayment(payment);
         }
 
-        // Gửi email xác nhận
-        try {
-            emailService.sendEmail(
-                    user.getEmail(),
-                    "Xác nhận thanh toán thành công - Mã giao dịch: " + payment.getId(),
-                    "Cảm ơn bạn đã thanh toán!\n\n" +
-                            "Mã giao dịch: " + payment.getId() + "\n" +
-                            "Số tiền: " + payment.getAmount() + " VND\n" +
-                            "Loại: " + payment.getType() + "\n" +
-                            "Thời gian: " + payment.getDate() + "\n\n" +
-                            "Trân trọng,\nThư viện trực tuyến");
-        } catch (Exception e) {
-            log.error("Gửi email xác nhận thất bại cho {}: {}", user.getEmail(), e.getMessage());
-        }
+        // Send confirmation email
+        sendPaymentConfirmationEmail(user, payment);
     }
 
-    /**
-     * Kích hoạt membership cho user.
-     */
-    private void activateMembership(User user) {
-        // Tìm membership hiện tại hoặc tạo mới
-        Membership membership = membershipRepository.findByUser(user).orElse(null);
+    private void processMembershipPayment(Payment payment) {
+        User user = payment.getUser();
+        Long membershipTypeId = paymentMembershipTypeMap.remove(payment.getId());
 
-        if (membership == null) {
-            membership = Membership.builder()
-                    .user(user)
-                    .startDate(new Date())
-                    .userStatus(UserStatus.ACTIVE)
-                    .build();
-        }
+        // Check if renewal
+        RenewalDetails renewalDetails = paymentRenewalMap.remove(payment.getId());
 
-        // Gia hạn: nếu membership còn hạn thì cộng dồn, nếu hết thì bắt đầu từ hôm nay
-        Date now = new Date();
-        Date startDate;
-        if (membership.getEndDate() != null && membership.getEndDate().after(now)) {
-            startDate = membership.getEndDate(); // Gia hạn từ ngày hết hạn cũ
-        } else {
-            startDate = now; // Bắt đầu từ hôm nay
-        }
-        membership.setStartDate(startDate);
-
-        // Mặc định membership 1 năm (có thể mapping từ MembershipType)
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(startDate);
-        cal.add(Calendar.YEAR, 1);
-        membership.setEndDate(cal.getTime());
-        membership.setUserStatus(UserStatus.ACTIVE);
-
-        // Gán loại membership mặc định nếu chưa có
-        if (membership.getType() == null) {
-            MembershipType defaultType = membershipTypeRepository.findByName("Premium");
-            if (defaultType == null) {
-                // Tạo mới nếu chưa có
-                defaultType = MembershipType.builder()
-                        .name("Premium")
-                        .price(100000L)
-                        .borrowLimit(5)
-                        .borrowDurationDay(14)
-                        .description("Gói Premium mặc định")
-                        .userStatus(UserStatus.ACTIVE)
-                        .build();
-                membershipTypeRepository.save(defaultType);
+        if (renewalDetails != null && renewalDetails.membershipId != null) {
+            // This is a renewal
+            membershipService.renewMembershipAfterPayment(renewalDetails.membershipId, renewalDetails.currentEndDate);
+            // Send renewal notification
+            notificationService.sendMembershipRenewalNotification(user);
+        } else if (membershipTypeId != null) {
+            // This is a new registration
+            MembershipType type = membershipService.getMembershipTypeById(membershipTypeId);
+            if (type != null) {
+                membershipService.activateMembership(user, type);
+                // Send activation notification
+                notificationService.sendMembershipActivationNotification(user);
+            } else {
+                log.warn("Membership type not found for payment: {}", payment.getId());
             }
-            membership.setType(defaultType);
+        } else {
+            // Fallback: try to find existing membership or create default
+            Membership existing = membershipRepository.findByUser(user).orElse(null);
+            if (existing != null && membershipService.canRenew(existing)) {
+                membershipService.renewMembershipAfterPayment(existing.getId(), existing.getEndDate());
+            } else {
+                MembershipType defaultType = membershipTypeRepository.findByName("Premium");
+                if (defaultType == null) {
+                    defaultType = MembershipType.builder()
+                            .name("Premium")
+                            .price(100000L)
+                            .borrowLimit(5)
+                            .borrowDurationDay(14)
+                            .description("Premium default package")
+                            .userStatus(UserStatus.ACTIVE)
+                            .build();
+                    membershipTypeRepository.save(defaultType);
+                }
+                membershipService.activateMembership(user, defaultType);
+            }
         }
 
-        membershipRepository.save(membership);
+        log.info("Membership processed for user: {}", user.getUsername());
     }
 
-    /**
-     * Xử lý webhook thanh toán từ PayOS.
-     */
-    @Transactional
-    public void handleWebhook(Long orderCode, String transactionCode) {
-        confirmPayment(orderCode, transactionCode);
+    private void processFinePayment(Payment payment) {
+        // Update fine status to PAID
+        // This would need fineId mapping - implement based on requirements
+        log.info("Fine payment processed for user: {}", payment.getUser().getUsername());
     }
 
-    /**
-     * Tra cứu thông tin thanh toán.
-     */
+    private void sendPaymentConfirmationEmail(User user, Payment payment) {
+        try {
+            String subject = "Payment Confirmation - Transaction: " + payment.getId();
+            String body = String.format(
+                    "Thank you for your payment!\n\n" +
+                            "Transaction ID: %d\n" +
+                            "Amount: %d VND\n" +
+                            "Type: %s\n" +
+                            "Date: %s\n\n" +
+                            "Best regards,\nLibrary System",
+                    payment.getId(),
+                    payment.getAmount(),
+                    payment.getType(),
+                    payment.getDate());
+
+            emailService.sendEmail(user.getEmail(), subject, body);
+        } catch (Exception e) {
+            log.error("Failed to send payment confirmation email to {}: {}", user.getEmail(), e.getMessage());
+        }
+    }
+
+    // Helper methods for storing payment metadata
+    public void setMembershipTypeIdForPayment(Long paymentId, Long membershipTypeId) {
+        paymentMembershipTypeMap.put(paymentId, membershipTypeId);
+    }
+
+    public void setRenewalDetailsForPayment(Long paymentId, Long membershipId, Date currentEndDate) {
+        paymentRenewalMap.put(paymentId, new RenewalDetails(membershipId, currentEndDate));
+    }
+
     public PaymentResponse getPaymentInfo(Long paymentId) {
         Payment payment = paymentRepository.findById(paymentId)
-                .orElseThrow(() -> new BusinessException("Không tìm thấy giao dịch", "PAYMENT_NOT_FOUND"));
+                .orElseThrow(() -> new BusinessException("Payment not found", "PAYMENT_NOT_FOUND"));
 
+        return toPaymentResponse(payment);
+    }
+
+    public Page<PaymentResponse> getUserPayments(String username, Pageable pageable) {
+        User user = userRepository.findById(username)
+                .orElseThrow(() -> new BusinessException("User not found", "USER_NOT_FOUND"));
+
+        Page<Payment> payments = paymentRepository.findByUser(user, pageable);
+        return payments.map(this::toPaymentResponse);
+    }
+
+    public BillResponse getBillByPaymentId(Long paymentId) {
+        Bill bill = billRepository.findByPaymentId(paymentId)
+                .orElseThrow(() -> new BusinessException("Bill not found for this payment", "BILL_NOT_FOUND"));
+
+        return new BillResponse(
+                bill.getId(),
+                bill.getPayment().getId(),
+                bill.getGatewayName(),
+                bill.getTransactionCode(),
+                bill.getStatus(),
+                bill.getCreatedAt());
+    }
+
+    @Transactional
+    public PaymentResponse cancelPayment(Long paymentId) {
+        Payment payment = paymentRepository.findById(paymentId)
+                .orElseThrow(() -> new BusinessException("Payment not found", "PAYMENT_NOT_FOUND"));
+
+        if (payment.getStatus() != PaymentStatus.PENDING) {
+            throw new BusinessException("Only pending payments can be cancelled", "INVALID_STATUS");
+        }
+
+        payment.setStatus(PaymentStatus.FAILED);
+        paymentRepository.save(payment);
+
+        // Remove from maps if exists
+        paymentMembershipTypeMap.remove(paymentId);
+        paymentRenewalMap.remove(paymentId);
+
+        log.info("Cancelled payment: {}", paymentId);
+
+        return new PaymentResponse(
+                payment.getId(),
+                payment.getUser().getUsername(),
+                payment.getAmount(),
+                payment.getType(),
+                payment.getStatus(),
+                payment.getMethod(),
+                payment.getDate(),
+                null,
+                "Payment cancelled successfully");
+    }
+
+    private PaymentResponse toPaymentResponse(Payment payment) {
         return new PaymentResponse(
                 payment.getId(),
                 payment.getUser().getUsername(),
@@ -259,57 +375,22 @@ public class PaymentProcessingService {
                 null);
     }
 
-    /**
-     * Huỷ thanh toán.
-     */
-    @Transactional
-    public PaymentResponse cancelPayment(Long paymentId) {
-        Payment payment = paymentRepository.findById(paymentId)
-                .orElseThrow(() -> new BusinessException("Không tìm thấy giao dịch", "PAYMENT_NOT_FOUND"));
-
-        if (payment.getStatus() != PaymentStatus.PENDING) {
-            throw new BusinessException("Chỉ có thể huỷ giao dịch đang chờ", "INVALID_STATUS");
-        }
-
-        payment.setStatus(PaymentStatus.FAILED);
-        paymentRepository.save(payment);
-
-        return new PaymentResponse(
-                payment.getId(),
-                payment.getUser().getUsername(),
-                payment.getAmount(),
-                payment.getType(),
-                payment.getStatus(),
-                payment.getMethod(),
-                payment.getDate(),
-                null,
-                "Đã huỷ giao dịch");
-    }
-
-    /**
-     * Lấy danh sách giao dịch của user.
-     */
-    public java.util.List<PaymentResponse> getUserPayments(String username) {
-        User user = userRepository.findById(username)
-                .orElseThrow(() -> new BusinessException("Không tìm thấy người dùng", "USER_NOT_FOUND"));
-
-        return paymentRepository.findAll().stream()
-                .filter(p -> p.getUser().getUsername().equals(username))
-                .map(p -> new PaymentResponse(
-                        p.getId(), p.getUser().getUsername(), p.getAmount(),
-                        p.getType(), p.getStatus(), p.getMethod(), p.getDate(),
-                        p.getPaymentUrl(), null))
-                .toList();
-    }
-
-    /**
-     * Sinh mã order code ngẫu nhiên (không trùng).
-     */
     private long generateOrderCode() {
         long code;
         do {
             code = ThreadLocalRandom.current().nextLong(100_000L, 9_999_999_999L);
         } while (paymentRepository.findById(code).isPresent());
         return code;
+    }
+
+    // Inner class for renewal details
+    private static class RenewalDetails {
+        Long membershipId;
+        Date currentEndDate;
+
+        RenewalDetails(Long membershipId, Date currentEndDate) {
+            this.membershipId = membershipId;
+            this.currentEndDate = currentEndDate;
+        }
     }
 }
