@@ -1,19 +1,31 @@
-// src/api/bookApi.js
-import axiosInstance from './axiosConfig';
+import axios from "axios";
 
-const API = axiosInstance;
+const API = axios.create({
+    baseURL: "http://localhost:8080/librarian",
+    headers: {
+        "Content-Type": "application/json",
+    }
+});
 
-export const getBooks = (page, size, keyword = "") =>
-    API.get(`/librarian/books?page=${page}&size=${size}&keyword=${keyword}`);
+export const getBooks = (page, size, keyword = "", categoryId = "", status = "") =>
+    API.get("/books", {
+        params: {
+            page,
+            size,
+            keyword,
+            categoryId,
+            status
+        }
+    });
 
 export const getBook = (id) =>
-    API.get(`/librarian/books/${id}`);
+    API.get(`/books/${id}`);
 
 export const createBook = (book) =>
-    API.post("/librarian/books", book);
+    API.post("/books", book);
 
 export const updateBook = (id, book) =>
-    API.put(`/librarian/books/${id}`, book);
+    API.put(`/books/${id}`, book);
 
 export const changeStatus = (id) =>
-    API.put(`/librarian/books/${id}/status`)
+    API.put(`/books/${id}/status`);

@@ -6,38 +6,36 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.sbagroup5.library.service.payment.PaymentProcessingService;
+import com.sbagroup5.library.entity.payment.Payment;
+import com.sbagroup5.library.service.EmailService;
+import com.sbagroup5.library.service.payment.PaymentService;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import vn.payos.PayOS;
 import vn.payos.model.webhooks.WebhookData;
 
-@Slf4j
 @RequiredArgsConstructor
 @RestController
 public class PayOsWebhookApi {
 
     private final PayOS payOS;
-    private final PaymentProcessingService paymentProcessingService;
+    private final PaymentService paymentService;
+    private final EmailService emailService;
 
-    /**
-     * Xử lý callback từ PayOS khi có giao dịch thanh toán.
-     * Cập nhật trạng thái Payment, tạo Bill, gửi email xác nhận.
-     */
+    private void orderConfirmed(WebhookData paymentData) {
+        Long paymentId = paymentData.getOrderCode();
+        Payment payment = paymentService.findById(paymentId);
+        emailService.sendSimpleEmail(payment.getUser().getEmail(),
+                "Xác nhận thanh toán cho hóa đơn " + paymentId + " thành công",
+                "Hóa đơn " + paymentId + " đã được thanh toán thành công với số tiền "
+                        + paymentData.getAmount() + paymentData.getCurrency() + ".\n" +
+                        "Thời gian thanh toán thành công: " + paymentData.getTransactionDateTime() + "\n" +
+                        "Cảm ơn bạn đã tin tưởng và sử dụng dịch vụ của chúng tôi!");
+    }
+
     @PostMapping(path = "/webhook")
     public void payosTransferHandler(@RequestBody Object body) {
         WebhookData data = payOS.webhooks().verify(body);
-        CompletableFuture.runAsync(() -> {
-            try {
-                Long paymentId = data.getOrderCode();
-                String transactionCode = data.getReference();
-                log.info("Nhận webhook thanh toán: paymentId={}, transactionCode={}",
-                        paymentId, transactionCode);
-                paymentProcessingService.handleWebhook(paymentId, transactionCode);
-            } catch (Exception e) {
-                log.error("Lỗi xử lý webhook thanh toán: {}", e.getMessage(), e);
-            }
-        });
+        CompletableFuture.runAsync(() -> orderConfirmed(data));
     }
 }

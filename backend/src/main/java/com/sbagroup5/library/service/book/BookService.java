@@ -1,22 +1,20 @@
 package com.sbagroup5.library.service.book;
 
+import com.sbagroup5.library.DTO.book.BookRequest;
+import com.sbagroup5.library.DTO.book.BookResponse;
 import com.sbagroup5.library.entity.book.Author;
 import com.sbagroup5.library.entity.book.Book;
 import com.sbagroup5.library.entity.book.BookStatus;
 import com.sbagroup5.library.entity.book.Category;
-import com.sbagroup5.library.record.book.BookRequest;
-import com.sbagroup5.library.record.book.BookResponse;
 import com.sbagroup5.library.repository.book.AuthorRepository;
 import com.sbagroup5.library.repository.book.BookRepository;
 import com.sbagroup5.library.repository.book.CategoryRepository;
 import com.sbagroup5.library.specification.book.BookSpecification;
-
 import org.springframework.data.domain.Page;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
-import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -25,7 +23,7 @@ public class BookService {
     private final AuthorRepository authorRepository;
     private final CategoryRepository categoryRepository;
 
-    // Lay Danh Sach Books
+    //Lay Danh Sach Books
     public Page<BookResponse> getBooks(int page, int size, String keyword, Long categoryId, String status) {
 
         Pageable pageable = PageRequest.of(page, size);
@@ -34,32 +32,33 @@ public class BookService {
                 BookSpecification.filter(
                         keyword,
                         categoryId,
-                        status),
-                pageable).map(
-                        book -> BookResponse.builder()
+                        status
+                ),
+                pageable
+        ).map(book -> BookResponse.builder()
 
-                                .id(book.getId())
+                .id(book.getId())
 
-                                .title(book.getTitle())
+                .title(book.getTitle())
 
-                                .categoryId(book.getCategory().getId())
-                                .category(book.getCategory().getName())
+                .categoryId(book.getCategory().getId())
+                .category(book.getCategory().getName())
 
-                                .authorId(book.getAuthor().getId())
-                                .author(book.getAuthor().getName())
+                .authorId(book.getAuthor().getId())
+                .author(book.getAuthor().getName())
 
-                                .price(book.getPrice())
-                                .isbn(book.getIsbn())
-                                .publisher(book.getPublisher())
-                                .publishYear(book.getPublishYear())
-                                .description(book.getDescription())
-                                .status(book.getStatus().name())
+                .price(book.getPrice())
+                .isbn(book.getIsbn())
+                .publisher(book.getPublisher())
+                .publishYear(book.getPublishYear())
+                .description(book.getDescription())
+                .status(book.getStatus().name())
 
-                                .build());
+                .build());
 
     }
 
-    // Book Details
+    //Book Details
     public BookResponse getBook(Long id) {
 
         Book book = bookRepository.findById(id)
@@ -85,7 +84,7 @@ public class BookService {
                 .build();
     }
 
-    // Them Books
+    //Them Books
     public BookResponse create(BookRequest request) {
         Category category = categoryRepository.findById(request.getCategoryId())
                 .orElseThrow();
@@ -110,7 +109,7 @@ public class BookService {
         return getBook(book.getId());
     }
 
-    // Sua Books
+    //Sua Books
     public BookResponse update(Long id, BookRequest request) {
         Book book = bookRepository.findById(id)
                 .orElseThrow();
@@ -135,15 +134,15 @@ public class BookService {
         return getBook(id);
     }
 
-    // Thay doi trang thai book
-    public BookResponse changeStatus(Long id) {
+    //Thay doi trang thai book
+    public BookResponse changeStatus(Long id){
 
         Book book = bookRepository.findById(id)
                 .orElseThrow();
 
-        if (book.getStatus() == BookStatus.AVAILABLE) {
+        if(book.getStatus() == BookStatus.AVAILABLE){
             book.setStatus(BookStatus.UNAVAILABLE);
-        } else {
+        }else{
             book.setStatus(BookStatus.AVAILABLE);
         }
 

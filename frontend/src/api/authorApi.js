@@ -1,22 +1,29 @@
-// src/api/authorApi.js
-import axiosInstance from './axiosConfig';
+import axios from "axios";
 
-const API = axiosInstance;
+const API = axios.create({
+    baseURL: "http://localhost:8080/librarian"
+});
 
-export const getAuthors = (page, size, keyword = "") =>
-    API.get(`/librarian/authors?page=${page}&size=${size}&keyword=${keyword}`);
+export const getAuthors = (
+    page,
+    size,
+    keyword = ""
+) =>
+    API.get(
+        `/authors?page=${page}&size=${size}&keyword=${keyword}`
+    );
 
 export const getAllAuthors = () =>
-    API.get("/librarian/authors/all");
+    API.get("/authors/all");
 
 export const getAuthor = (id) =>
-    API.get(`/librarian/authors/${id}`);
+    API.get(`/authors/${id}`);
 
 export const createAuthor = (author) =>
-    API.post("/librarian/authors", author);
+    API.post("/authors", author);
 
 export const updateAuthor = (id, author) =>
-    API.put(`/librarian/authors/${id}`, author);
+    API.put(`/authors/${id}`, author);
 
 export const deleteAuthor = (id) =>
-    API.delete(`/librarian/authors/${id}`);
+    API.delete(`/authors/${id}`);

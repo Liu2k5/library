@@ -1,21 +1,29 @@
-import axiosInstance from "./axiosConfig";
+import axios from "axios";
 
-const API = axiosInstance
+const API = axios.create({
+    baseURL: "http://localhost:8080/librarian"
+});
 
-export const getCategories = (page, size, keyword = "") =>
-    API.get(`/librarian/categories?page=${page}&size=${size}&keyword=${keyword}`);
+export const getCategories = (
+    page,
+    size,
+    keyword = ""
+) =>
+    API.get(
+        `/categories?page=${page}&size=${size}&keyword=${keyword}`
+    );
 
 export const getAllCategories = () =>
-    API.get("/librarian/categories/all");
+    API.get("/categories/all");
 
 export const getCategory = (id) =>
-    API.get(`/librarian/categories/${id}`);
+    API.get(`/categories/${id}`);
 
 export const createCategory = (category) =>
-    API.post("/librarian/categories", category);
+    API.post("/categories", category);
 
 export const updateCategory = (id, category) =>
-    API.put(`/librarian/categories/${id}`, category);
+    API.put(`/categories/${id}`, category);
 
 export const deleteCategory = (id) =>
-    API.delete(`/librarian/categories/${id}`);
+    API.delete(`/categories/${id}`);

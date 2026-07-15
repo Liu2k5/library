@@ -1,18 +1,16 @@
 package com.sbagroup5.library.service.book;
 
-import java.util.List;
-
+import com.sbagroup5.library.DTO.book.AuthorRequest;
+import com.sbagroup5.library.DTO.book.AuthorResponse;
 import com.sbagroup5.library.entity.book.Author;
-import com.sbagroup5.library.record.book.AuthorRequest;
-import com.sbagroup5.library.record.book.AuthorResponse;
 import com.sbagroup5.library.repository.book.AuthorRepository;
-
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import lombok.RequiredArgsConstructor;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -20,7 +18,7 @@ public class AuthorService {
 
     private final AuthorRepository authorRepository;
 
-    public Page<AuthorResponse> getAuthors(int page, int size, String keyword) {
+    public Page<AuthorResponse> getAuthors(int page,int size,String keyword) {
 
         Pageable pageable = PageRequest.of(page, size);
 
@@ -33,11 +31,13 @@ public class AuthorService {
                     .findByNameContainingIgnoreCase(keyword, pageable);
         }
 
-        return authors.map(author -> AuthorResponse.builder()
-                .id(author.getId())
-                .name(author.getName())
-                .biography(author.getBiography())
-                .build());
+        return authors.map(author ->
+                AuthorResponse.builder()
+                        .id(author.getId())
+                        .name(author.getName())
+                        .biography(author.getBiography())
+                        .build()
+        );
     }
 
     public List<AuthorResponse> getAll() {

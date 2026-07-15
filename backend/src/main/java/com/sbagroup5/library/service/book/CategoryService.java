@@ -1,18 +1,16 @@
 package com.sbagroup5.library.service.book;
 
-import java.util.List;
-
+import com.sbagroup5.library.DTO.book.CategoryRequest;
+import com.sbagroup5.library.DTO.book.CategoryResponse;
 import com.sbagroup5.library.entity.book.Category;
-import com.sbagroup5.library.record.book.CategoryRequest;
-import com.sbagroup5.library.record.book.CategoryResponse;
 import com.sbagroup5.library.repository.book.CategoryRepository;
-
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import lombok.RequiredArgsConstructor;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -20,7 +18,7 @@ public class CategoryService {
 
     private final CategoryRepository categoryRepository;
 
-    public Page<CategoryResponse> getCategories(int page, int size, String keyword) {
+    public Page<CategoryResponse> getCategories(int page,int size,String keyword) {
 
         Pageable pageable = PageRequest.of(page, size);
 
@@ -33,11 +31,13 @@ public class CategoryService {
                     .findByNameContainingIgnoreCase(keyword, pageable);
         }
 
-        return categories.map(category -> CategoryResponse.builder()
-                .id(category.getId())
-                .name(category.getName())
-                .description(category.getDescription())
-                .build());
+        return categories.map(category ->
+                CategoryResponse.builder()
+                        .id(category.getId())
+                        .name(category.getName())
+                        .description(category.getDescription())
+                        .build()
+        );
     }
 
     public List<CategoryResponse> getAll() {
