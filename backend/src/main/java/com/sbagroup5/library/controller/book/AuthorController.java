@@ -1,7 +1,12 @@
 package com.sbagroup5.library.controller.book;
 
+
 import com.sbagroup5.library.DTO.book.AuthorRequest;
 import com.sbagroup5.library.DTO.book.AuthorResponse;
+
+import com.sbagroup5.library.record.book.AuthorResponse;
+import com.sbagroup5.library.record.book.AuthorRequest;
+
 import com.sbagroup5.library.service.book.AuthorService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

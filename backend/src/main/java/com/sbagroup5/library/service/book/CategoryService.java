@@ -1,7 +1,7 @@
 package com.sbagroup5.library.service.book;
 
-import com.sbagroup5.library.DTO.book.CategoryRequest;
-import com.sbagroup5.library.DTO.book.CategoryResponse;
+import com.sbagroup5.library.record.book.CategoryResponse;
+import com.sbagroup5.library.record.book.CategoryRequest;
 import com.sbagroup5.library.entity.book.Category;
 import com.sbagroup5.library.repository.book.CategoryRepository;
 import lombok.RequiredArgsConstructor;

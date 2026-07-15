@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -27,5 +29,35 @@ public class NotificationService {
                 .isRead(false)
                 .createdAt(new Date())
                 .build());
+    }
+
+    // ----- Quản trị thông báo (admin) -----
+
+    public List<Notification> getAllNotifications() {
+        return notificationRepository.findAll();
+    }
+
+    public Notification createNotification(Notification notification) {
+        return notificationRepository.save(notification);
+    }
+
+    public Optional<Notification> getNotificationById(Long id) {
+        return notificationRepository.findById(id);
+    }
+
+    public Notification updateNotification(Long id, Notification notificationDetails) {
+        Notification notification = notificationRepository.findById(id).orElse(null);
+        if (notification != null) {
+            notification.setTitle(notificationDetails.getTitle());
+            notification.setMessage(notificationDetails.getMessage());
+            notification.setType(notificationDetails.getType());
+
+            return notificationRepository.save(notification);
+        }
+        return null;
+    }
+
+    public void deleteNotification(Long id) {
+        notificationRepository.deleteById(id);
     }
 }

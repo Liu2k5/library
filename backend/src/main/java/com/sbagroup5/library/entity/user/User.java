@@ -31,7 +31,7 @@ public class User implements UserDetails {
     @Column(columnDefinition = "NVARCHAR(100)")
     private String fullName;
 
-    @Column(columnDefinition = "VARCHAR(100)")
+    @Column(columnDefinition = "VARCHAR(100)", unique = true)
     private String email;
 
     @Column(columnDefinition = "VARCHAR(64)")

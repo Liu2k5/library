@@ -2,6 +2,8 @@ package com.sbagroup5.library.service.book;
 
 import com.sbagroup5.library.DTO.book.AuthorRequest;
 import com.sbagroup5.library.DTO.book.AuthorResponse;
+import com.sbagroup5.library.record.book.AuthorResponse;
+import com.sbagroup5.library.record.book.AuthorRequest;
 import com.sbagroup5.library.entity.book.Author;
 import com.sbagroup5.library.repository.book.AuthorRepository;
 import lombok.RequiredArgsConstructor;

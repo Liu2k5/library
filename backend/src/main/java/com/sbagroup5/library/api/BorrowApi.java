@@ -46,9 +46,9 @@ public class BorrowApi {
         return ResponseEntity.ok(borrowService.getBorrow(id));
     }
 
-    /** Liệt kê các phiếu mượn của một thành viên. */
+    /** Liệt kê các phiếu mượn của một thành viên theo email. */
     @GetMapping
-    public ResponseEntity<List<BorrowResponse>> listByUser(@RequestParam String username) {
-        return ResponseEntity.ok(borrowService.listBorrowsByUser(username));
+    public ResponseEntity<List<BorrowResponse>> listByEmail(@RequestParam String email) {
+        return ResponseEntity.ok(borrowService.listBorrowsByEmail(email));
     }
 }
