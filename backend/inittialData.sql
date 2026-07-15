@@ -47,11 +47,11 @@ BEGIN TRY
         user_status
     )
     VALUES
-    (N'Thường', N'Gói cơ bản', 14, 3, 50000, 1),
-    (N'Bạc', N'Gói bạc', 21, 5, 100000, 1),
-    (N'Vàng', N'Gói vàng', 30, 10, 200000, 1),
-    (N'Kim Cương', N'Gói cao cấp', 45, 15, 500000, 1),
-    (N'Dùng thử', N'Gói miễn phí', 7, 1, 0, 1);
+    (N'Thường', N'Gói cơ bản', 14, 3, 50000, 0),
+    (N'Bạc', N'Gói bạc', 21, 5, 100000, 0),
+    (N'Vàng', N'Gói vàng', 30, 10, 200000, 0),
+    (N'Kim Cương', N'Gói cao cấp', 45, 15, 500000, 0),
+    (N'Dùng thử', N'Gói miễn phí', 7, 1, 0, 0);
 
     --------------------------------------------------
     -- USERS
