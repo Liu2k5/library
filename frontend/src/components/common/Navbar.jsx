@@ -11,7 +11,7 @@ const Navbar = () => {
 
     const handleLogout = async () => {
         await logout();
-        navigate('/login');
+        navigate('/');
     };
 
     const isLibrarianActive = location.pathname.startsWith('/librarian');
