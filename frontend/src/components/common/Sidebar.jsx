@@ -16,7 +16,8 @@ const Sidebar = () => {
     const isProfileSection = location.pathname.startsWith('/profile') ||
         location.pathname.startsWith('/change-password') ||
         location.pathname.startsWith('/membership') ||
-        location.pathname.startsWith('/payment');
+        location.pathname.startsWith('/payment') ||
+        location.pathname.startsWith('/ai-chat');
 
     // If not in any special section, hide sidebar
     if (!isLibrarianSection && !isAdminSection && !isProfileSection) {
@@ -123,6 +124,15 @@ const Sidebar = () => {
                                     <span>Notification Manager</span>
                                 </NavLink>
                             </li>
+                            <li>
+                                <NavLink
+                                    to="/admin/vector-db"
+                                    className={({ isActive }) => isActive ? 'active' : ''}
+                                >
+                                    <i className="bi bi-database-gear"></i>
+                                    <span>Vector DB Manager</span>
+                                </NavLink>
+                            </li>
                         </ul>
                     </li>
                 )}
@@ -140,6 +150,25 @@ const Sidebar = () => {
                                 >
                                     <i className="bi bi-ticket-perforated"></i>
                                     <span>Membership Plans</span>
+                                </NavLink>
+                            </li>
+                        </ul>
+                    </li>
+                )}
+
+                {/* AI Assistant Section */}
+                {isProfileSection && (
+                    <li className="sidebar-section">
+                        <span className="sidebar-section-title">AI Assistant</span>
+                        <ul className="sidebar-submenu">
+                            <li>
+                                <NavLink
+                                    to="/ai-chat"
+                                    className={({ isActive }) => isActive ? 'active' : ''}
+                                    end
+                                >
+                                    <i className="bi bi-robot"></i>
+                                    <span>AI Chatbot</span>
                                 </NavLink>
                             </li>
                         </ul>

@@ -2,6 +2,8 @@ package com.sbagroup5.library.api;
 
 import com.sbagroup5.library.record.borrow.BorrowResponse;
 import com.sbagroup5.library.record.borrow.CreateBorrowRequest;
+import com.sbagroup5.library.record.borrow.FineResponse;
+import com.sbagroup5.library.record.borrow.ReportLostRequest;
 import com.sbagroup5.library.record.borrow.ReturnRequest;
 import com.sbagroup5.library.record.borrow.ReturnResponse;
 import com.sbagroup5.library.service.book.borrow.BorrowService;
@@ -38,6 +40,12 @@ public class BorrowApi {
     @PostMapping("/return")
     public ResponseEntity<ReturnResponse> returnBooks(@RequestBody ReturnRequest request) {
         return ResponseEntity.ok(borrowService.returnBooks(request));
+    }
+
+    /** Lập phiếu phạt do mất sách (đánh dấu bản sao LOST và tạo bản ghi phạt). */
+    @PostMapping("/lost")
+    public ResponseEntity<FineResponse> reportLost(@RequestBody ReportLostRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(borrowService.reportLost(request));
     }
 
     /** Xem chi tiết một phiếu mượn. */

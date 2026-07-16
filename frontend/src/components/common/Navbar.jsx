@@ -42,6 +42,17 @@ const Navbar = () => {
                 </button>
                 <div className="collapse navbar-collapse" id="navbarNav">
                     <ul className="navbar-nav me-auto">
+                        {/* AI Chatbot - Luôn hiển thị */}
+                        <li className="nav-item">
+                            <Link
+                                className={`nav-link text-white ${location.pathname === '/ai-chat' ? 'active' : ''}`}
+                                to="/ai-chat"
+                            >
+                                <i className="bi bi-robot me-1"></i>
+                                AI Chat
+                            </Link>
+                        </li>
+
                         {/* Membership Menu - Luôn hiển thị */}
                         <li className="nav-item">
                             <Link
@@ -88,6 +99,10 @@ const Navbar = () => {
                                             <NavDropdown.Item as={Link} to="/librarian/returns" active={location.pathname === '/librarian/returns'}>
                                                 <i className="bi bi-journal-arrow-up me-1"></i>
                                                 Return Books
+                                            </NavDropdown.Item>
+                                            <NavDropdown.Item as={Link} to="/librarian/fines" active={location.pathname === '/librarian/fines'}>
+                                                <i className="bi bi-cash-coin me-1"></i>
+                                                Fines
                                             </NavDropdown.Item>
                                         </NavDropdown>
                                     </li>

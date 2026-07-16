@@ -1,5 +1,6 @@
 package com.sbagroup5.library.service.book.borrow;
 
+import com.sbagroup5.library.entity.book.Book;
 import com.sbagroup5.library.entity.book.BookCopy;
 import com.sbagroup5.library.entity.book.CopyStatus;
 import com.sbagroup5.library.entity.book.borrow.Borrow;
@@ -14,6 +15,7 @@ import com.sbagroup5.library.record.borrow.BorrowItemResponse;
 import com.sbagroup5.library.record.borrow.BorrowResponse;
 import com.sbagroup5.library.record.borrow.CreateBorrowRequest;
 import com.sbagroup5.library.record.borrow.FineResponse;
+import com.sbagroup5.library.record.borrow.ReportLostRequest;
 import com.sbagroup5.library.record.borrow.ReturnRequest;
 import com.sbagroup5.library.record.borrow.ReturnResponse;
 import com.sbagroup5.library.repository.book.BookCopyRepository;
@@ -240,6 +242,76 @@ public class BorrowService {
         return new ReturnResponse(borrow.getId(), fullyReturned, returnedItems, fines);
     }
 
+    /**
+     * Lập phiếu phạt do mất sách: đánh dấu bản sao là LOST, đóng dòng mượn và
+     * tạo một bản ghi Fine (mặc định mức phạt = giá sách nếu không truyền lên).
+     */
+    @Transactional
+    public FineResponse reportLost(ReportLostRequest request) {
+        if (request == null || request.borrowId() == null
+                || request.barcode() == null || request.barcode().isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Thiếu id phiếu mượn hoặc mã vạch");
+        }
+
+        Borrow borrow = borrowRepository.findById(request.borrowId())
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Không tìm thấy phiếu mượn: " + request.borrowId()));
+
+        List<BorrowDetail> openDetails = borrowDetailRepository.findByBorrowAndReturnDateIsNull(borrow);
+        BorrowDetail detail = openDetails.stream()
+                .filter(d -> d.getCopy() != null && request.barcode().equals(d.getCopy().getBarcode()))
+                .findFirst()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "Mã vạch không thuộc phiếu mượn hoặc đã được xử lý: " + request.barcode()));
+
+        BookCopy copy = detail.getCopy();
+        Book book = copy.getBook();
+        String bookTitle = (book != null && book.getTitle() != null) ? book.getTitle() : copy.getBarcode();
+
+        // Mức phạt: ưu tiên số tiền truyền lên, nếu không có thì lấy giá sách.
+        long amount;
+        if (request.amount() != null) {
+            amount = request.amount();
+        } else if (book != null && book.getPrice() != null) {
+            amount = book.getPrice().longValue();
+        } else {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Không xác định được mức phạt, vui lòng nhập số tiền");
+        }
+
+        String reason = (request.reason() != null && !request.reason().isBlank())
+                ? request.reason()
+                : "Mất sách: " + bookTitle;
+
+        Date now = new Date();
+        // Đánh dấu bản sao là không còn dùng được (mất) và đóng dòng mượn.
+        copy.setStatus(CopyStatus.UNAVAILABLE);
+        bookCopyRepository.save(copy);
+        detail.setReturnDate(now);
+        borrowDetailRepository.save(detail);
+
+        Fine fine = fineRepository.save(Fine.builder()
+                .borrowDetail(detail)
+                .amount(amount)
+                .reason(reason)
+                .issuedDate(now)
+                .status(FineStatus.UNPAID)
+                .build());
+
+        boolean fullyReturned = borrowDetailRepository.countByBorrowAndReturnDateIsNull(borrow) == 0;
+        if (fullyReturned && !borrow.isReturned()) {
+            borrow.setReturned(true);
+            borrowRepository.save(borrow);
+        }
+
+        notificationService.create(borrow.getUser(),
+                "Phiếu phạt mất sách",
+                "Bạn bị lập phiếu phạt do mất sách \"" + bookTitle + "\": " + amount + " VND.",
+                NotificationType.WARNING);
+
+        return toFineResponse(fine);
+    }
+
     @Transactional(readOnly = true)
     public BorrowResponse getBorrow(Long id) {
         Borrow borrow = borrowRepository.findById(id)
@@ -306,14 +378,16 @@ public class BorrowService {
         String title = null;
         Long copyId = null;
         String barcode = null;
+        String status = null;
         if (copy != null) {
             copyId = copy.getId();
             barcode = copy.getBarcode();
+            status = copy.getStatus() != null ? copy.getStatus().name() : null;
             if (copy.getBook() != null) {
                 title = copy.getBook().getTitle();
             }
         }
-        return new BorrowItemResponse(detail.getId(), copyId, barcode, title, detail.getReturnDate());
+        return new BorrowItemResponse(detail.getId(), copyId, barcode, title, detail.getReturnDate(), status);
     }
 
     /** Soạn nội dung email phiếu mượn gửi cho khách. */

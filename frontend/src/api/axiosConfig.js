@@ -25,7 +25,11 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
     (response) => response,
     (error) => {
-        if ([401, 403].includes(error.response?.status)) {
+        const url = error.config?.url || '';
+        // Bỏ qua redirect cho cú gọi thăm dò phiên đăng nhập:
+        // guest luôn nhận 403 ở đây và cần được ở lại trang công khai (vd trang chủ).
+        const isAuthProbe = url.includes('/api/auth/me');
+        if ([401, 403].includes(error.response?.status) && !isAuthProbe) {
             localStorage.removeItem('user');
             if (!window.location.pathname.includes('/login')) {
                 window.location.href = '/login';
