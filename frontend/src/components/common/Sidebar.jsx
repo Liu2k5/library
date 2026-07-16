@@ -78,6 +78,15 @@ const Sidebar = () => {
                                     <span>Payment</span>
                                 </NavLink>
                             </li>
+                            <li>
+                                <NavLink
+                                    to="/librarian/fines"
+                                    className={({ isActive }) => isActive ? 'active' : ''}
+                                >
+                                    <i className="bi bi-cash-coin"></i>
+                                    <span>Fines</span>
+                                </NavLink>
+                            </li>
                         </ul>
                     </li>
                 )}
