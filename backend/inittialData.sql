@@ -72,7 +72,7 @@ BEGIN TRY
     (
         'user01',
         N'Nguyễn Văn An',
-        '$2a$12$l2vR9Vpgn9h9HM92FRYpOOG1P9DrWM50jX6kj75zyYoxlM.o6d2ni', // password is '123456'
+        '$2a$12$l2vR9Vpgn9h9HM92FRYpOOG1P9DrWM50jX6kj75zyYoxlM.o6d2ni', 
         'user01@gmail.com',
         '0901000001',
         N'Hà Nội',
@@ -83,7 +83,7 @@ BEGIN TRY
     (
         'user02',
         N'Trần Thị Bình',
-        '$2a$12$l2vR9Vpgn9h9HM92FRYpOOG1P9DrWM50jX6kj75zyYoxlM.o6d2ni', // password is '123456'
+        '$2a$12$l2vR9Vpgn9h9HM92FRYpOOG1P9DrWM50jX6kj75zyYoxlM.o6d2ni', 
         'user02@gmail.com',
         '0901000002',
         N'Hồ Chí Minh',
@@ -94,7 +94,7 @@ BEGIN TRY
     (
         'user03',
         N'Lê Minh Châu',
-        '$2a$12$l2vR9Vpgn9h9HM92FRYpOOG1P9DrWM50jX6kj75zyYoxlM.o6d2ni', // password is '123456'
+        '$2a$12$l2vR9Vpgn9h9HM92FRYpOOG1P9DrWM50jX6kj75zyYoxlM.o6d2ni', 
         'user03@gmail.com',
         '0901000003',
         N'Đà Nẵng',
@@ -105,7 +105,7 @@ BEGIN TRY
     (
         'user04',
         N'Phạm Quốc Dũng',
-        '$2a$12$l2vR9Vpgn9h9HM92FRYpOOG1P9DrWM50jX6kj75zyYoxlM.o6d2ni', // password is '123456'
+        '$2a$12$l2vR9Vpgn9h9HM92FRYpOOG1P9DrWM50jX6kj75zyYoxlM.o6d2ni', 
         'user04@gmail.com',
         '0901000004',
         N'Hải Phòng',
@@ -116,7 +116,7 @@ BEGIN TRY
     (
         'user05',
         N'Hoàng Thu Hà',
-        '$2a$12$l2vR9Vpgn9h9HM92FRYpOOG1P9DrWM50jX6kj75zyYoxlM.o6d2ni', // password is '123456'
+        '$2a$12$l2vR9Vpgn9h9HM92FRYpOOG1P9DrWM50jX6kj75zyYoxlM.o6d2ni',
         'user05@gmail.com',
         '0901000005',
         N'Cần Thơ',
