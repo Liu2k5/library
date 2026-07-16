@@ -53,16 +53,19 @@ const Navbar = () => {
                             </Link>
                         </li>
 
-                        {/* Membership Menu - Luôn hiển thị */}
-                        <li className="nav-item">
-                            <Link
-                                className={`nav-link text-white ${location.pathname === '/membership' ? 'active' : ''}`}
-                                to="/membership"
-                            >
-                                <i className="bi bi-ticket-perforated me-1"></i>
-                                Membership
-                            </Link>
-                        </li>
+                        {/* Membership Menu - Luôn hiển thị trừ với libranrian và admin */}
+                        {(user === null || user.role === 'MEMBER') && (
+                            <><li className="nav-item">
+                                <Link
+                                    className={`nav-link text-white ${location.pathname === '/membership' ? 'active' : ''}`}
+                                    to="/membership"
+                                >
+                                    <i className="bi bi-ticket-perforated me-1"></i>
+                                    Membership
+                                </Link>
+                            </li>
+                            </>
+                        )}
 
                         {/* Các menu chỉ hiển thị khi đã đăng nhập */}
                         {isAuthenticated && (

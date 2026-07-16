@@ -146,7 +146,7 @@ const Sidebar = () => {
                     </li>
                 )}
 
-                {/* Membership Section always show */}
+                {/* Membership Section always show instead of admin and librarian */}
                 {isProfileSection && user.role !== "ADMIN" && user.role !== "LIBRARIAN" && (
                     <li className="sidebar-section">
                         <span className="sidebar-section-title">Membership</span>
@@ -199,15 +199,17 @@ const Sidebar = () => {
                                     <span>My Profile</span>
                                 </NavLink>
                             </li>
-                            <li>
-                                <NavLink
-                                    to="/payment/history"
-                                    className={({ isActive }) => isActive ? 'active' : ''}
-                                >
-                                    <i className="bi bi-credit-card"></i>
-                                    <span>Payment History</span>
-                                </NavLink>
-                            </li>
+                            {user.role === "MEMBER" && (
+                                <li>
+                                    <NavLink
+                                        to="/payment/history"
+                                        className={({ isActive }) => isActive ? 'active' : ''}
+                                    >
+                                        <i className="bi bi-credit-card"></i>
+                                        <span>Payment History</span>
+                                    </NavLink>
+                                </li>
+                            )}
                             <li>
                                 <NavLink
                                     to="/change-password"
