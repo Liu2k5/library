@@ -88,7 +88,7 @@ public class PaymentProcessingService {
     @Transactional
     public PaymentResponse createPayment(String username, PaymentRequest request) {
         User user = userRepository.findById(username)
-                .orElseThrow(() -> new BusinessException("User not found", "USER_NOT_FOUND"));
+                .orElseThrow(() -> new BusinessException("USER_NOT_FOUND", "User not found"));
 
         // For membership payments, validate business rules
         if (request.type() == PaymentType.MEMBERSHIP) {
@@ -98,7 +98,7 @@ public class PaymentProcessingService {
         // For fine payments, validate fine exists
         if (request.type() == PaymentType.FINE && request.fineId() != null) {
             if (!fineRepository.existsById(request.fineId())) {
-                throw new BusinessException("Fine not found", "FINE_NOT_FOUND");
+                throw new BusinessException("FINE_NOT_FOUND", "Fine not found");
             }
         }
 
@@ -141,8 +141,8 @@ public class PaymentProcessingService {
     private void validateMembershipPayment(User user, PaymentRequest request) {
         // Check if user already has a pending payment
         if (paymentRepository.existsByUserAndTypeAndStatus(user, PaymentType.MEMBERSHIP, PaymentStatus.PENDING)) {
-            throw new BusinessException("You have a pending payment. Please complete or cancel it first.",
-                    "PENDING_PAYMENT_EXISTS");
+            throw new BusinessException("PENDING_PAYMENT_EXISTS",
+                    "You have a pending payment. Please complete or cancel it first.");
         }
 
         // Check if user has membership
@@ -151,9 +151,8 @@ public class PaymentProcessingService {
         if (existingMembership != null) {
             // If user has membership, check if can renew
             if (!membershipService.canRenew(existingMembership)) {
-                throw new BusinessException(
-                        "Cannot renew membership. It must be within 3 days of expiration.",
-                        "CANNOT_RENEW");
+                throw new BusinessException("CANNOT_RENEW",
+                        "Cannot renew membership. It must be within 3 days of expiration.");
             }
         }
     }
@@ -174,14 +173,14 @@ public class PaymentProcessingService {
 
         } catch (Exception e) {
             log.error("Error creating PayOS payment link: {}", e.getMessage(), e);
-            throw new BusinessException("Cannot create payment link: " + e.getMessage(), "PAYOS_ERROR");
+            throw new BusinessException("PAYOS_ERROR", "Cannot create payment link: " + e.getMessage());
         }
     }
 
     @Transactional
     public void handleWebhook(Long paymentId, String transactionCode) {
         Payment payment = paymentRepository.findById(paymentId)
-                .orElseThrow(() -> new BusinessException("Payment not found", "PAYMENT_NOT_FOUND"));
+                .orElseThrow(() -> new BusinessException("PAYMENT_NOT_FOUND", "Payment not found"));
 
         if (payment.getStatus() == PaymentStatus.COMPLETED) {
             log.warn("Payment {} already completed, skipping webhook", paymentId);
@@ -306,14 +305,14 @@ public class PaymentProcessingService {
 
     public PaymentResponse getPaymentInfo(Long paymentId) {
         Payment payment = paymentRepository.findById(paymentId)
-                .orElseThrow(() -> new BusinessException("Payment not found", "PAYMENT_NOT_FOUND"));
+                .orElseThrow(() -> new BusinessException("PAYMENT_NOT_FOUND", "Payment not found"));
 
         return toPaymentResponse(payment);
     }
 
     public Page<PaymentResponse> getUserPayments(String username, Pageable pageable) {
         User user = userRepository.findById(username)
-                .orElseThrow(() -> new BusinessException("User not found", "USER_NOT_FOUND"));
+                .orElseThrow(() -> new BusinessException("USER_NOT_FOUND", "User not found"));
 
         Page<Payment> payments = paymentRepository.findByUser(user, pageable);
         return payments.map(this::toPaymentResponse);
@@ -321,7 +320,7 @@ public class PaymentProcessingService {
 
     public BillResponse getBillByPaymentId(Long paymentId) {
         Bill bill = billRepository.findByPaymentId(paymentId)
-                .orElseThrow(() -> new BusinessException("Bill not found for this payment", "BILL_NOT_FOUND"));
+                .orElseThrow(() -> new BusinessException("BILL_NOT_FOUND", "Bill not found for this payment"));
 
         return new BillResponse(
                 bill.getId(),
@@ -335,10 +334,10 @@ public class PaymentProcessingService {
     @Transactional
     public PaymentResponse cancelPayment(Long paymentId) {
         Payment payment = paymentRepository.findById(paymentId)
-                .orElseThrow(() -> new BusinessException("Payment not found", "PAYMENT_NOT_FOUND"));
+                .orElseThrow(() -> new BusinessException("PAYMENT_NOT_FOUND", "Payment not found"));
 
         if (payment.getStatus() != PaymentStatus.PENDING) {
-            throw new BusinessException("Only pending payments can be cancelled", "INVALID_STATUS");
+            throw new BusinessException("INVALID_STATUS", "Only pending payments can be cancelled");
         }
 
         payment.setStatus(PaymentStatus.FAILED);

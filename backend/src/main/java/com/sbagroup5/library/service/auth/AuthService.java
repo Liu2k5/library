@@ -57,10 +57,10 @@ public class AuthService {
     @Transactional
     public LoginResponse login(LoginRequest request) {
         User user = userRepository.findByEmail(request.email())
-                .orElseThrow(() -> new BusinessException("Invalid email or password", "INVALID_CREDENTIALS"));
+                .orElseThrow(() -> new BusinessException("INVALID_CREDENTIALS", "Invalid email or password"));
 
         if (user.getUserStatus() != UserStatus.ACTIVE) {
-            throw new BusinessException("Account is not active.", "ACCOUNT_INACTIVE");
+            throw new BusinessException("ACCOUNT_INACTIVE", "Account is not active.");
         }
 
         Authentication authentication = authenticationManager.authenticate(
@@ -96,12 +96,12 @@ public class AuthService {
     public User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {
-            throw new BusinessException("User not authenticated", "UNAUTHENTICATED");
+            throw new BusinessException("UNAUTHENTICATED", "User not authenticated");
         }
 
         String username = authentication.getName();
         return userRepository.findById(username)
-                .orElseThrow(() -> new BusinessException("User not found", "USER_NOT_FOUND"));
+                .orElseThrow(() -> new BusinessException("USER_NOT_FOUND", "User not found"));
     }
 
     /**
@@ -124,19 +124,19 @@ public class AuthService {
     @Transactional
     public void register(RegisterRequest request) {
         if (userRepository.existsByUsername(request.username())) {
-            throw new BusinessException("Username already exists", "USERNAME_EXISTS");
+            throw new BusinessException("USERNAME_EXISTS", "Username already exists");
         }
 
         if (userRepository.existsByEmail(request.email())) {
-            throw new BusinessException("Email already exists", "EMAIL_EXISTS");
+            throw new BusinessException("EMAIL_EXISTS", "Email already exists");
         }
 
         if (userRepository.existsByPhone(request.phone())) {
-            throw new BusinessException("Phone number already exists", "PHONE_EXISTS");
+            throw new BusinessException("PHONE_EXISTS", "Phone number already exists");
         }
 
         Role readerRole = roleService.findByName("MEMBER")
-                .orElseThrow(() -> new BusinessException("MEMBER role not found", "ROLE_NOT_FOUND"));
+                .orElseThrow(() -> new BusinessException("ROLE_NOT_FOUND", "MEMBER role not found"));
 
         User user = new User();
         user.setUsername(request.username());
@@ -175,11 +175,11 @@ public class AuthService {
     @Transactional
     public void forgotPassword(ForgotPasswordRequest request) {
         User user = userRepository.findByEmail(request.email())
-                .orElseThrow(() -> new BusinessException("Email not found", "EMAIL_NOT_FOUND"));
+                .orElseThrow(() -> new BusinessException("EMAIL_NOT_FOUND", "Email not found"));
 
         // Check if user is active
         if (user.getUserStatus() != UserStatus.ACTIVE) {
-            throw new BusinessException("Account is not active. Please contact administrator.", "ACCOUNT_INACTIVE");
+            throw new BusinessException("ACCOUNT_INACTIVE", "Account is not active. Please contact administrator.");
         }
 
         // Delete existing tokens for this user
@@ -223,26 +223,26 @@ public class AuthService {
     @Transactional
     public void resetPassword(ResetPasswordRequest request) {
         if (!request.newPassword().equals(request.confirmPassword())) {
-            throw new BusinessException("Passwords do not match", "PASSWORDS_MISMATCH");
+            throw new BusinessException("PASSWORDS_MISMATCH", "Passwords do not match");
         }
 
         PasswordResetToken token = tokenRepository.findByToken(request.token())
-                .orElseThrow(() -> new BusinessException("Invalid or expired token", "INVALID_TOKEN"));
+                .orElseThrow(() -> new BusinessException("INVALID_TOKEN", "Invalid or expired token"));
 
         if (!token.isValid()) {
             if (token.isUsed()) {
-                throw new BusinessException("Token has already been used", "TOKEN_USED");
+                throw new BusinessException("TOKEN_USED", "Token has already been used");
             }
             if (token.isExpired()) {
-                throw new BusinessException("Token has expired", "TOKEN_EXPIRED");
+                throw new BusinessException("TOKEN_EXPIRED", "Token has expired");
             }
-            throw new BusinessException("Invalid token", "INVALID_TOKEN");
+            throw new BusinessException("INVALID_TOKEN", "Invalid token");
         }
 
         User user = token.getUser();
 
         if (user.getUserStatus() != UserStatus.ACTIVE) {
-            throw new BusinessException("Account is not active. Please contact administrator.", "ACCOUNT_INACTIVE");
+            throw new BusinessException("ACCOUNT_INACTIVE", "Account is not active. Please contact administrator.");
         }
 
         user.setPassword(passwordEncoder.encode(request.newPassword()));
@@ -272,17 +272,17 @@ public class AuthService {
     @Transactional
     public void changePassword(ChangePasswordRequest request) {
         if (!request.newPassword().equals(request.confirmPassword())) {
-            throw new BusinessException("Passwords do not match", "PASSWORD_MISMATCH");
+            throw new BusinessException("PASSWORD_MISMATCH", "Passwords do not match");
         }
 
         User currentUser = getCurrentUser();
 
         if (!passwordEncoder.matches(request.currentPassword(), currentUser.getPassword())) {
-            throw new BusinessException("Current password is incorrect", "INVALID_CURRENT_PASSWORD");
+            throw new BusinessException("INVALID_CURRENT_PASSWORD", "Current password is incorrect");
         }
 
         if (passwordEncoder.matches(request.newPassword(), currentUser.getPassword())) {
-            throw new BusinessException("New password must be different from current password", "SAME_PASSWORD");
+            throw new BusinessException("SAME_PASSWORD", "New password must be different from current password");
         }
 
         currentUser.setPassword(passwordEncoder.encode(request.newPassword()));
