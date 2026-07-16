@@ -1,5 +1,4 @@
 // src/components/common/Sidebar.jsx
-// src/components/common/Sidebar.jsx
 import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import './Sidebar.css';
@@ -75,7 +74,7 @@ const Sidebar = () => {
                                     className={({ isActive }) => isActive ? 'active' : ''}
                                 >
                                     <i className="bi bi-journal-arrow-up"></i>
-                                    <span>Payment</span>
+                                    <span>Returns Book</span>
                                 </NavLink>
                             </li>
                             <li>
@@ -147,42 +146,43 @@ const Sidebar = () => {
                 )}
 
                 {/* Membership Section always show instead of admin and librarian */}
-                {isProfileSection && user.role !== "ADMIN" && user.role !== "LIBRARIAN" && (
-                    <li className="sidebar-section">
-                        <span className="sidebar-section-title">Membership</span>
-                        <ul className="sidebar-submenu">
-                            <li>
-                                <NavLink
-                                    to="/membership"
-                                    className={({ isActive }) => isActive ? 'active' : ''}
-                                    end
-                                >
-                                    <i className="bi bi-ticket-perforated"></i>
-                                    <span>Membership Plans</span>
-                                </NavLink>
-                            </li>
-                        </ul>
-                    </li>
+                {isProfileSection && user.role === "MEMBER" && (
+                    <>
+                        <li className="sidebar-section">
+                            <span className="sidebar-section-title">Membership</span>
+                            <ul className="sidebar-submenu">
+                                <li>
+                                    <NavLink
+                                        to="/membership"
+                                        className={({ isActive }) => isActive ? 'active' : ''}
+                                        end
+                                    >
+                                        <i className="bi bi-ticket-perforated"></i>
+                                        <span>Membership Plans</span>
+                                    </NavLink>
+                                </li>
+                            </ul>
+                        </li>
+
+                        {/* AI Assistant Section */}
+                        <li className="sidebar-section">
+                            <span className="sidebar-section-title">AI Assistant</span>
+                            <ul className="sidebar-submenu">
+                                <li>
+                                    <NavLink
+                                        to="/ai-chat"
+                                        className={({ isActive }) => isActive ? 'active' : ''}
+                                        end
+                                    >
+                                        <i className="bi bi-robot"></i>
+                                        <span>AI Chatbot</span>
+                                    </NavLink>
+                                </li>
+                            </ul>
+                        </li>
+                    </>
                 )}
 
-                {/* AI Assistant Section */}
-                {isProfileSection && (
-                    <li className="sidebar-section">
-                        <span className="sidebar-section-title">AI Assistant</span>
-                        <ul className="sidebar-submenu">
-                            <li>
-                                <NavLink
-                                    to="/ai-chat"
-                                    className={({ isActive }) => isActive ? 'active' : ''}
-                                    end
-                                >
-                                    <i className="bi bi-robot"></i>
-                                    <span>AI Chatbot</span>
-                                </NavLink>
-                            </li>
-                        </ul>
-                    </li>
-                )}
 
                 {/* Account Section only show when logged in */}
                 {isProfileSection && isAuthenticated && (

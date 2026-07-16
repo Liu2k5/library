@@ -11,7 +11,7 @@ const Navbar = () => {
 
     const handleLogout = async () => {
         await logout();
-        navigate('/login');
+        navigate('/');
     };
 
     const isLibrarianActive = location.pathname.startsWith('/librarian');
@@ -42,34 +42,34 @@ const Navbar = () => {
                 </button>
                 <div className="collapse navbar-collapse" id="navbarNav">
                     <ul className="navbar-nav me-auto">
-                        {/* AI Chatbot - Luôn hiển thị */}
-                        <li className="nav-item">
-                            <Link
-                                className={`nav-link text-white ${location.pathname === '/ai-chat' ? 'active' : ''}`}
-                                to="/ai-chat"
-                            >
-                                <i className="bi bi-robot me-1"></i>
-                                AI Chat
-                            </Link>
-                        </li>
-
-                        {/* Membership Menu - Luôn hiển thị trừ với libranrian và admin */}
-                        {(user === null || user.role === 'MEMBER') && (
-                            <><li className="nav-item">
-                                <Link
-                                    className={`nav-link text-white ${location.pathname === '/membership' ? 'active' : ''}`}
-                                    to="/membership"
-                                >
-                                    <i className="bi bi-ticket-perforated me-1"></i>
-                                    Membership
-                                </Link>
-                            </li>
-                            </>
-                        )}
-
                         {/* Các menu chỉ hiển thị khi đã đăng nhập */}
                         {isAuthenticated && (
                             <>
+                                {(user.role === 'MEMBER') && (
+                                    <>
+                                        {/* AI Chatbot  */}
+                                        <li className="nav-item">
+                                            <Link
+                                                className={`nav-link text-white ${location.pathname === '/ai-chat' ? 'active' : ''}`}
+                                                to="/ai-chat"
+                                            >
+                                                <i className="bi bi-robot me-1"></i>
+                                                AI Chat
+                                            </Link>
+                                        </li>
+
+                                        {/* Membership Menu  */}
+                                        <li className="nav-item">
+                                            <Link
+                                                className={`nav-link text-white ${location.pathname === '/membership' ? 'active' : ''}`}
+                                                to="/membership"
+                                            >
+                                                <i className="bi bi-ticket-perforated me-1"></i>
+                                                Membership
+                                            </Link>
+                                        </li>
+                                    </>
+                                )}
                                 {/* Librarian Menu */}
                                 {(user?.role === 'LIBRARIAN') && (
                                     <li className="nav-item">

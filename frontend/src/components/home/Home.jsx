@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 
 import { getBooks } from "../../api/bookApi";
 import { getAllCategories } from "../../api/categoryApi";
@@ -206,13 +205,13 @@ function Home() {
                 </>
             )}
 
-            {!user && (
+            {/* {!user && (
                 <div className="text-center mt-5 pt-3 border-top">
                     <p className="text-muted mb-2">Want to borrow books?</p>
                     <Link to="/login" className="btn btn-primary me-2">Login</Link>
                     <Link to="/register" className="btn btn-outline-primary">Register</Link>
                 </div>
-            )}
+            )} */}
         </div>
     );
 }

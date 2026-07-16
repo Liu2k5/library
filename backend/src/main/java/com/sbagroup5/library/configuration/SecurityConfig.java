@@ -42,8 +42,7 @@ public class SecurityConfig {
                                 "/api/auth/register",
                                 "/api/auth/forgot-password",
                                 "/api/auth/reset-password",
-                                "/webhook",
-                                "/api/membership/types")
+                                "/webhook")
                         .permitAll()
                         .anyRequest().authenticated())
                 .formLogin(form -> form.disable())
@@ -88,7 +87,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
         configuration.setExposedHeaders(Arrays.asList("Set-Cookie"));
