@@ -1,7 +1,6 @@
 package com.sbagroup5.library.service;
 
 import com.sbagroup5.library.entity.book.Book;
-import com.sbagroup5.library.entity.book.BookCopy;
 import com.sbagroup5.library.entity.book.Category;
 import com.sbagroup5.library.entity.book.Author;
 import com.sbagroup5.library.repository.book.BookRepository;
@@ -43,8 +42,13 @@ public class VectorDbDataService {
      */
     public void loadAllBooksToVectorDb() {
         log.info("Bắt đầu xoá dữ liệu cũ khỏi Pinecone...");
-        pineconeIndex.deleteAll("__default__");
-        log.info("Đã xoá dữ liệu cũ. Bắt đầu đọc sách từ database...");
+        try {
+            pineconeIndex.deleteAll("__default__");
+            log.info("Đã xoá dữ liệu cũ.");
+        } catch (Exception e) {
+            log.warn("Không thể xoá dữ liệu cũ (có thể namespace chưa tồn tại): {}", e.getMessage());
+        }
+        log.info("Bắt đầu đọc sách từ database...");
 
         List<Book> books = bookRepository.findAll();
         if (books.isEmpty()) {
@@ -139,7 +143,11 @@ public class VectorDbDataService {
      * Xoá toàn bộ dữ liệu trong vector database.
      */
     public void clearVectorDb() {
-        pineconeIndex.deleteAll("__default__");
-        log.info("Đã xoá toàn bộ dữ liệu trong Pinecone.");
+        try {
+            pineconeIndex.deleteAll("__default__");
+            log.info("Đã xoá toàn bộ dữ liệu trong Pinecone.");
+        } catch (Exception e) {
+            log.warn("Không thể xoá dữ liệu Pinecone: {}", e.getMessage());
+        }
     }
 }

@@ -43,7 +43,6 @@ public class SecurityConfig {
                                 "/api/auth/forgot-password",
                                 "/api/auth/reset-password",
                                 "/webhook",
-                                "/librarian/**",
                                 "/api/membership/types")
                         .permitAll()
                         .anyRequest().authenticated())

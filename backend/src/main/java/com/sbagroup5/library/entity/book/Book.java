@@ -20,7 +20,7 @@ public class Book {
     private Category category;
 
     @JoinColumn(name = "author_id")
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     private Author author;
 
     @Column(columnDefinition = "NVARCHAR(200) NOT NULL")

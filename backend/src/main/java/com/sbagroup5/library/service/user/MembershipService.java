@@ -40,7 +40,7 @@ public class MembershipService {
     private final PaymentProcessingService paymentProcessingService;
     private final NotificationService notificationService;
 
-    private static final int RENEWAL_THRESHOLD_DAYS = 3;
+    private static final int RENEWAL_THRESHOLD_DAYS = 1;
     private static final int MEMBERSHIP_DURATION_YEARS = 1;
 
     /**
@@ -92,7 +92,6 @@ public class MembershipService {
                 membershipTypeId);
 
         PaymentResponse paymentResponse = paymentProcessingService.createPayment(username, paymentRequest);
-
         paymentProcessingService.setMembershipTypeIdForPayment(paymentResponse.id(), membershipTypeId);
 
         log.info("User {} registered for membership type: {}", username, type.getName());
@@ -132,7 +131,6 @@ public class MembershipService {
                 type.getId());
 
         PaymentResponse paymentResponse = paymentProcessingService.createPayment(username, paymentRequest);
-
         paymentProcessingService.setRenewalDetailsForPayment(
                 paymentResponse.id(),
                 existingMembership.getId(),
@@ -147,38 +145,29 @@ public class MembershipService {
      */
     @Transactional
     public void activateMembership(User user, MembershipType type) {
+
         Membership existing = membershipRepository.findByUser(user).orElse(null);
 
-        if (existing != null && existing.getEndDate() != null && existing.getEndDate().after(new Date())) {
-            Calendar cal = Calendar.getInstance();
-            cal.setTime(existing.getEndDate());
-            cal.add(Calendar.YEAR, MEMBERSHIP_DURATION_YEARS);
-            existing.setEndDate(cal.getTime());
-            existing.setUserStatus(UserStatus.ACTIVE);
-            membershipRepository.save(existing);
-            log.info("Renewed membership for user: {}", user.getUsername());
-        } else {
-            if (existing != null) {
-                membershipRepository.deleteByUser(user);
-            }
-
-            Calendar cal = Calendar.getInstance();
-            cal.setTime(new Date());
-            cal.add(Calendar.YEAR, MEMBERSHIP_DURATION_YEARS);
-
-            Membership newMembership = Membership.builder()
-                    .user(user)
-                    .type(type)
-                    .startDate(new Date())
-                    .endDate(cal.getTime())
-                    .userStatus(UserStatus.ACTIVE)
-                    .build();
-
-            membershipRepository.save(newMembership);
-            log.info("Activated new membership for user: {}", user.getUsername());
+        if (existing != null) {
+            membershipRepository.delete(existing);
         }
 
+        Date now = new Date();
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(now);
+        cal.add(Calendar.YEAR, MEMBERSHIP_DURATION_YEARS);
+
+        Membership membership = Membership.builder()
+                .user(user)
+                .type(type)
+                .startDate(now)
+                .endDate(cal.getTime())
+                .userStatus(UserStatus.ACTIVE)
+                .build();
+
+        membershipRepository.save(membership);
         notificationService.sendMembershipActivationNotification(user);
+        log.info("Activated membership for user {}", user.getUsername());
     }
 
     /**
@@ -190,21 +179,17 @@ public class MembershipService {
                 .orElseThrow(() -> new BusinessException("MEMBERSHIP_NOT_FOUND", "Membership not found"));
 
         Date now = new Date();
-
         Date startDate = (currentEndDate != null && currentEndDate.after(now))
                 ? currentEndDate
                 : now;
-
         Calendar cal = Calendar.getInstance();
         cal.setTime(startDate);
         cal.add(Calendar.YEAR, MEMBERSHIP_DURATION_YEARS);
 
-        membership.setStartDate(startDate);
         membership.setEndDate(cal.getTime());
         membership.setUserStatus(UserStatus.ACTIVE);
 
         membershipRepository.save(membership);
-
         notificationService.sendMembershipRenewalNotification(membership.getUser());
 
         log.info("Renewed membership {} for user {}", membershipId, membership.getUser().getUsername());
@@ -226,7 +211,7 @@ public class MembershipService {
     }
 
     /**
-     * Process memberships expiring in 3 days (send notifications)
+     * Process memberships expiring in 1 day (send notifications)
      */
     @Transactional
     public void processExpiringSoonMemberships() {

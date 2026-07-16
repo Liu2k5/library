@@ -32,6 +32,10 @@ import AccountManage from './components/admin/AccountManage';
 import MembershipManage from './components/admin/MembershipManage';
 import NotificationManage from './components/admin/NotificationManage';
 import Overall from './components/admin/Overall';
+import VectorDbManage from './components/admin/VectorDbManage';
+
+// AI Chatbot
+import AiChatbot from './components/chatbot/AiChatbot';
 
 // Membership Components
 import MembershipPage from './components/membership/MembershipPage';
@@ -54,6 +58,9 @@ function App() {
 
                             {/* Membership - Public route (can view plans) */}
                             <Route path="membership" element={<MembershipPage />} />
+
+                            {/* AI Chatbot - public route */}
+                            <Route path="ai-chat" element={<AiChatbot />} />
 
                             {/* Payment routes */}
                             <Route path="payment/success" element={<PaymentSuccess />} />
@@ -121,6 +128,7 @@ function App() {
                                             <Route path="accounts" element={<AccountManage />} />
                                             <Route path="memberships" element={<MembershipManage />} />
                                             <Route path="notifications" element={<NotificationManage />} />
+                                            <Route path="vector-db" element={<VectorDbManage />} />
                                         </Routes>
                                     </PrivateRoute>
                                 }

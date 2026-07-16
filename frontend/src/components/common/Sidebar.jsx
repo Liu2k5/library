@@ -16,7 +16,8 @@ const Sidebar = () => {
     const isProfileSection = location.pathname.startsWith('/profile') ||
         location.pathname.startsWith('/change-password') ||
         location.pathname.startsWith('/membership') ||
-        location.pathname.startsWith('/payment');
+        location.pathname.startsWith('/payment') ||
+        location.pathname.startsWith('/ai-chat');
 
     // If not in any special section, hide sidebar
     if (!isLibrarianSection && !isAdminSection && !isProfileSection) {
@@ -57,6 +58,33 @@ const Sidebar = () => {
                                 >
                                     <i className="bi bi-tags"></i>
                                     <span>Categories</span>
+                                </NavLink>
+                            </li>
+                            <li>
+                                <NavLink
+                                    to="/librarian/borrows"
+                                    className={({ isActive }) => isActive ? 'active' : ''}
+                                >
+                                    <i className="bi bi-journal-plus"></i>
+                                    <span>Create Borrow Record</span>
+                                </NavLink>
+                            </li>
+                            <li>
+                                <NavLink
+                                    to="/librarian/returns"
+                                    className={({ isActive }) => isActive ? 'active' : ''}
+                                >
+                                    <i className="bi bi-journal-arrow-up"></i>
+                                    <span>Payment</span>
+                                </NavLink>
+                            </li>
+                            <li>
+                                <NavLink
+                                    to="/librarian/fines"
+                                    className={({ isActive }) => isActive ? 'active' : ''}
+                                >
+                                    <i className="bi bi-cash-coin"></i>
+                                    <span>Fines</span>
                                 </NavLink>
                             </li>
                         </ul>
@@ -105,12 +133,21 @@ const Sidebar = () => {
                                     <span>Notification Manager</span>
                                 </NavLink>
                             </li>
+                            <li>
+                                <NavLink
+                                    to="/admin/vector-db"
+                                    className={({ isActive }) => isActive ? 'active' : ''}
+                                >
+                                    <i className="bi bi-database-gear"></i>
+                                    <span>Vector DB Manager</span>
+                                </NavLink>
+                            </li>
                         </ul>
                     </li>
                 )}
 
-                {/* Membership Section always show */}
-                {isProfileSection && (
+                {/* Membership Section always show instead of admin and librarian */}
+                {isProfileSection && user.role !== "ADMIN" && user.role !== "LIBRARIAN" && (
                     <li className="sidebar-section">
                         <span className="sidebar-section-title">Membership</span>
                         <ul className="sidebar-submenu">
@@ -122,6 +159,25 @@ const Sidebar = () => {
                                 >
                                     <i className="bi bi-ticket-perforated"></i>
                                     <span>Membership Plans</span>
+                                </NavLink>
+                            </li>
+                        </ul>
+                    </li>
+                )}
+
+                {/* AI Assistant Section */}
+                {isProfileSection && (
+                    <li className="sidebar-section">
+                        <span className="sidebar-section-title">AI Assistant</span>
+                        <ul className="sidebar-submenu">
+                            <li>
+                                <NavLink
+                                    to="/ai-chat"
+                                    className={({ isActive }) => isActive ? 'active' : ''}
+                                    end
+                                >
+                                    <i className="bi bi-robot"></i>
+                                    <span>AI Chatbot</span>
                                 </NavLink>
                             </li>
                         </ul>
@@ -143,15 +199,17 @@ const Sidebar = () => {
                                     <span>My Profile</span>
                                 </NavLink>
                             </li>
-                            <li>
-                                <NavLink
-                                    to="/payment/history"
-                                    className={({ isActive }) => isActive ? 'active' : ''}
-                                >
-                                    <i className="bi bi-credit-card"></i>
-                                    <span>Payment History</span>
-                                </NavLink>
-                            </li>
+                            {user.role === "MEMBER" && (
+                                <li>
+                                    <NavLink
+                                        to="/payment/history"
+                                        className={({ isActive }) => isActive ? 'active' : ''}
+                                    >
+                                        <i className="bi bi-credit-card"></i>
+                                        <span>Payment History</span>
+                                    </NavLink>
+                                </li>
+                            )}
                             <li>
                                 <NavLink
                                     to="/change-password"

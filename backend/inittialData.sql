@@ -8,9 +8,7 @@ BEGIN TRY
     VALUES
     (N'ADMIN', N'Quản trị hệ thống'),
     (N'LIBRARIAN', N'Thủ thư'),
-    (N'MEMBER', N'Thành viên thường'),
-    (N'VIP', N'Thành viên VIP'),
-    (N'GUEST', N'Khách');
+    (N'MEMBER', N'Thành viên thường');
 
     --------------------------------------------------
     -- CATEGORY
@@ -50,8 +48,7 @@ BEGIN TRY
     (N'Thường', N'Gói cơ bản', 14, 3, 50000, 0),
     (N'Bạc', N'Gói bạc', 21, 5, 100000, 0),
     (N'Vàng', N'Gói vàng', 30, 10, 200000, 0),
-    (N'Kim Cương', N'Gói cao cấp', 45, 15, 500000, 0),
-    (N'Dùng thử', N'Gói miễn phí', 7, 1, 0, 0);
+    (N'Kim Cương', N'Gói cao cấp', 45, 15, 500000, 0);
 
     --------------------------------------------------
     -- USERS
@@ -72,7 +69,7 @@ BEGIN TRY
     (
         'user01',
         N'Nguyễn Văn An',
-        '$2a$12$l2vR9Vpgn9h9HM92FRYpOOG1P9DrWM50jX6kj75zyYoxlM.o6d2ni', // password is '123456'
+        '$2a$12$l2vR9Vpgn9h9HM92FRYpOOG1P9DrWM50jX6kj75zyYoxlM.o6d2ni', -- password is '123456'
         'user01@gmail.com',
         '0901000001',
         N'Hà Nội',
@@ -83,7 +80,7 @@ BEGIN TRY
     (
         'user02',
         N'Trần Thị Bình',
-        '$2a$12$l2vR9Vpgn9h9HM92FRYpOOG1P9DrWM50jX6kj75zyYoxlM.o6d2ni', // password is '123456'
+        '$2a$12$l2vR9Vpgn9h9HM92FRYpOOG1P9DrWM50jX6kj75zyYoxlM.o6d2ni', -- password is '123456'
         'user02@gmail.com',
         '0901000002',
         N'Hồ Chí Minh',
@@ -94,18 +91,18 @@ BEGIN TRY
     (
         'user03',
         N'Lê Minh Châu',
-        '$2a$12$l2vR9Vpgn9h9HM92FRYpOOG1P9DrWM50jX6kj75zyYoxlM.o6d2ni', // password is '123456'
+        '$2a$12$l2vR9Vpgn9h9HM92FRYpOOG1P9DrWM50jX6kj75zyYoxlM.o6d2ni', -- password is '123456'
         'user03@gmail.com',
         '0901000003',
         N'Đà Nẵng',
         GETDATE(),
         0,
-        (SELECT id FROM role WHERE name = N'VIP')
+        (SELECT id FROM role WHERE name = N'MEMBER')
     ),
     (
         'user04',
         N'Phạm Quốc Dũng',
-        '$2a$12$l2vR9Vpgn9h9HM92FRYpOOG1P9DrWM50jX6kj75zyYoxlM.o6d2ni', // password is '123456'
+        '$2a$12$l2vR9Vpgn9h9HM92FRYpOOG1P9DrWM50jX6kj75zyYoxlM.o6d2ni', -- password is '123456'
         'user04@gmail.com',
         '0901000004',
         N'Hải Phòng',
@@ -116,7 +113,7 @@ BEGIN TRY
     (
         'user05',
         N'Hoàng Thu Hà',
-        '$2a$12$l2vR9Vpgn9h9HM92FRYpOOG1P9DrWM50jX6kj75zyYoxlM.o6d2ni', // password is '123456'
+        '$2a$12$l2vR9Vpgn9h9HM92FRYpOOG1P9DrWM50jX6kj75zyYoxlM.o6d2ni', -- password is '123456'
         'user05@gmail.com',
         '0901000005',
         N'Cần Thơ',
@@ -271,20 +268,6 @@ BEGIN TRY
         1,
         (SELECT id FROM membership_type WHERE name = N'Vàng'),
         'user03'
-    ),
-    (
-        GETDATE(),
-        DATEADD(DAY,45,GETDATE()),
-        1,
-        (SELECT id FROM membership_type WHERE name = N'Kim Cương'),
-        'user04'
-    ),
-    (
-        GETDATE(),
-        DATEADD(DAY,7,GETDATE()),
-        1,
-        (SELECT id FROM membership_type WHERE name = N'Dùng thử'),
-        'user05'
     );
 
     --------------------------------------------------
@@ -301,8 +284,7 @@ BEGIN TRY
     (GETDATE(), DATEADD(DAY,14,GETDATE()), 0, 'user01'),
     (GETDATE(), DATEADD(DAY,14,GETDATE()), 1, 'user02'),
     (GETDATE(), DATEADD(DAY,21,GETDATE()), 0, 'user03'),
-    (GETDATE(), DATEADD(DAY,7,GETDATE()), 1, 'user04'),
-    (GETDATE(), DATEADD(DAY,14,GETDATE()), 0, 'user05');
+    (GETDATE(), DATEADD(DAY,7,GETDATE()), 1, 'user01');
 
     --------------------------------------------------
     -- BORROW DETAIL
@@ -331,77 +313,70 @@ BEGIN TRY
     ),
     (
         DATEADD(DAY,5,GETDATE()),
-        (SELECT MIN(id) FROM borrow WHERE user_id='user04'),
+        (SELECT MIN(id) FROM borrow WHERE user_id='user01'),
         (SELECT id FROM book_copy WHERE barcode='BC004')
-    ),
-    (
-        NULL,
-        (SELECT MIN(id) FROM borrow WHERE user_id='user05'),
-        (SELECT id FROM book_copy WHERE barcode='BC005')
     );
 
     --------------------------------------------------
     -- FINE
     --------------------------------------------------
     INSERT INTO fine
+(
+    amount,
+    issued_date,
+    reason,
+    status,
+    borrow_detail_id
+)
+VALUES
+(
+    50000,
+    GETDATE(),
+    N'Trả sách trễ',
+    0,
     (
-        amount,
-        issued_date,
-        reason,
-        status,
-        borrow_detail_id
+        SELECT MIN(bd.id)
+        FROM borrow_detail bd
+        JOIN borrow b ON b.id = bd.borrow_id
+        WHERE b.user_id='user01'
     )
-    VALUES
+),
+(
+    30000,
+    GETDATE(),
+    N'Hư hỏng sách',
+    1,
     (
-        50000,
-        GETDATE(),
-        N'Trả sách trễ',
-        0,
-        (SELECT MIN(bd.id)
-         FROM borrow_detail bd
-         JOIN borrow b ON b.id = bd.borrow_id
-         WHERE b.user_id='user01')
-    ),
+        SELECT MIN(bd.id)
+        FROM borrow_detail bd
+        JOIN borrow b ON b.id = bd.borrow_id
+        WHERE b.user_id='user02'
+    )
+),
+(
+    100000,
+    GETDATE(),
+    N'Mất sách',
+    0,
     (
-        30000,
-        GETDATE(),
-        N'Hư hỏng sách',
-        1,
-        (SELECT MIN(bd.id)
-         FROM borrow_detail bd
-         JOIN borrow b ON b.id = bd.borrow_id
-         WHERE b.user_id='user02')
-    ),
+        SELECT MIN(bd.id)
+        FROM borrow_detail bd
+        JOIN borrow b ON b.id = bd.borrow_id
+        WHERE b.user_id='user03'
+    )
+),
+(
+    20000,
+    GETDATE(),
+    N'Quá hạn',
+    1,
     (
-        100000,
-        GETDATE(),
-        N'Mất sách',
-        0,
-        (SELECT MIN(bd.id)
-         FROM borrow_detail bd
-         JOIN borrow b ON b.id = bd.borrow_id
-         WHERE b.user_id='user03')
-    ),
-    (
-        20000,
-        GETDATE(),
-        N'Quá hạn',
-        1,
-        (SELECT MIN(bd.id)
-         FROM borrow_detail bd
-         JOIN borrow b ON b.id = bd.borrow_id
-         WHERE b.user_id='user04')
-    ),
-    (
-        50000,
-        GETDATE(),
-        N'Trả trễ',
-        0,
-        (SELECT MIN(bd.id)
-         FROM borrow_detail bd
-         JOIN borrow b ON b.id = bd.borrow_id
-         WHERE b.user_id='user05')
-    );
+        SELECT MAX(bd.id)
+        FROM borrow_detail bd
+        JOIN borrow b ON b.id = bd.borrow_id
+        WHERE b.user_id='user01'
+    )
+);
 
     --------------------------------------------------
     -- PAYMENT
@@ -421,8 +396,7 @@ BEGIN TRY
     (900001, 50000, GETDATE(), 'MOMO',  'https://payment.example/900001', 1, 1, 'user01'),
     (900002, 100000, GETDATE(), 'VNPAY', 'https://payment.example/900002', 1, 1, 'user02'),
     (900003, 200000, GETDATE(), 'BANK',  'https://payment.example/900003', 1, 1, 'user03'),
-    (900004, 500000, GETDATE(), 'MOMO',  'https://payment.example/900004', 0, 1, 'user04'),
-    (900005, 0, GETDATE(), 'FREE', NULL, 1, 1, 'user05');
+    (900004, 500000, GETDATE(), 'MOMO',  'https://payment.example/900004', 0, 1, 'user01');
 
     --------------------------------------------------
     -- BILL
@@ -439,8 +413,7 @@ BEGIN TRY
     (GETDATE(), 'MOMO', 1, 'TXN-900001', 900001),
     (GETDATE(), 'VNPAY', 1, 'TXN-900002', 900002),
     (GETDATE(), 'BANK', 1, 'TXN-900003', 900003),
-    (GETDATE(), 'MOMO', 0, 'TXN-900004', 900004),
-    (GETDATE(), 'FREE', 1, 'TXN-900005', 900005);
+    (GETDATE(), 'MOMO', 0, 'TXN-900004', 900004);
 
     --------------------------------------------------
     -- NOTIFICATION
@@ -485,15 +458,7 @@ BEGIN TRY
         N'Sách đã được trả',
         N'Hoàn trả sách',
         1,
-        'user04'
-    ),
-    (
-        GETDATE(),
-        0,
-        N'Chào mừng đến thư viện',
-        N'Xin chào',
-        3,
-        'user05'
+        'user01'
     );
 
     COMMIT TRANSACTION;
