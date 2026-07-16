@@ -321,54 +321,62 @@ BEGIN TRY
     -- FINE
     --------------------------------------------------
     INSERT INTO fine
+(
+    amount,
+    issued_date,
+    reason,
+    status,
+    borrow_detail_id
+)
+VALUES
+(
+    50000,
+    GETDATE(),
+    N'Trả sách trễ',
+    0,
     (
-        amount,
-        issued_date,
-        reason,
-        status,
-        borrow_detail_id
+        SELECT MIN(bd.id)
+        FROM borrow_detail bd
+        JOIN borrow b ON b.id = bd.borrow_id
+        WHERE b.user_id='user01'
     )
-    VALUES
+),
+(
+    30000,
+    GETDATE(),
+    N'Hư hỏng sách',
+    1,
     (
-        50000,
-        GETDATE(),
-        N'Trả sách trễ',
-        0,
-        (SELECT MIN(bd.id)
-         FROM borrow_detail bd
-         JOIN borrow b ON b.id = bd.borrow_id
-         WHERE b.user_id='user01')
-    ),
+        SELECT MIN(bd.id)
+        FROM borrow_detail bd
+        JOIN borrow b ON b.id = bd.borrow_id
+        WHERE b.user_id='user02'
+    )
+),
+(
+    100000,
+    GETDATE(),
+    N'Mất sách',
+    0,
     (
-        30000,
-        GETDATE(),
-        N'Hư hỏng sách',
-        1,
-        (SELECT MIN(bd.id)
-         FROM borrow_detail bd
-         JOIN borrow b ON b.id = bd.borrow_id
-         WHERE b.user_id='user02')
-    ),
+        SELECT MIN(bd.id)
+        FROM borrow_detail bd
+        JOIN borrow b ON b.id = bd.borrow_id
+        WHERE b.user_id='user03'
+    )
+),
+(
+    20000,
+    GETDATE(),
+    N'Quá hạn',
+    1,
     (
-        100000,
-        GETDATE(),
-        N'Mất sách',
-        0,
-        (SELECT MIN(bd.id)
-         FROM borrow_detail bd
-         JOIN borrow b ON b.id = bd.borrow_id
-         WHERE b.user_id='user03')
-    ),
-    (
-        20000,
-        GETDATE(),
-        N'Quá hạn',
-        1,
-        (SELECT MIN(bd.id)
-         FROM borrow_detail bd
-         JOIN borrow b ON b.id = bd.borrow_id
-         WHERE b.user_id='user01')
-    );
+        SELECT MAX(bd.id)
+        FROM borrow_detail bd
+        JOIN borrow b ON b.id = bd.borrow_id
+        WHERE b.user_id='user01'
+    )
+);
 
     --------------------------------------------------
     -- PAYMENT
