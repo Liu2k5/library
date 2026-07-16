@@ -176,7 +176,6 @@ export default function AccountManage() {
                                     disabled={isEditing}
                                 >
                                     <option value="MEMBER">MEMBER</option>
-                                    <option value="VIP">VIP</option>
                                     <option value="LIBRARIAN">LIBRARIAN</option>
                                     <option value="ADMIN">ADMIN</option>
                                 </select>

@@ -59,6 +59,24 @@ const Sidebar = () => {
                                     <span>Categories</span>
                                 </NavLink>
                             </li>
+                            <li>
+                                <NavLink
+                                    to="/librarian/borrows"
+                                    className={({ isActive }) => isActive ? 'active' : ''}
+                                >
+                                    <i className="bi bi-journal-plus"></i>
+                                    <span>Create Borrow Record</span>
+                                </NavLink>
+                            </li>
+                            <li>
+                                <NavLink
+                                    to="/librarian/returns"
+                                    className={({ isActive }) => isActive ? 'active' : ''}
+                                >
+                                    <i className="bi bi-journal-arrow-up"></i>
+                                    <span>Payment</span>
+                                </NavLink>
+                            </li>
                         </ul>
                     </li>
                 )}
@@ -110,7 +128,7 @@ const Sidebar = () => {
                 )}
 
                 {/* Membership Section always show */}
-                {isProfileSection && (
+                {isProfileSection && user.role !== "ADMIN" && user.role !== "LIBRARIAN" && (
                     <li className="sidebar-section">
                         <span className="sidebar-section-title">Membership</span>
                         <ul className="sidebar-submenu">
