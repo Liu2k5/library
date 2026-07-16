@@ -106,7 +106,6 @@ There are two ways to run the stack:
 
 ## Database Initialization
 - The file `backend/inittialData.sql` contains sample tables and seed data. Spring Boot automatically runs it on startup for embedded databases.
-- For a production SQL Server instance, create a database and run the script manually, or let Spring Boot execute it by setting `spring.datasource.initialize=true` in `application.properties`.
 
 ---
 
