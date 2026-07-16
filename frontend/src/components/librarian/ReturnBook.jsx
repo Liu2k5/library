@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { getBorrowsByEmail, returnBooks } from "../../api/borrowApi";
+import { getBorrowsByEmail, returnBooks, reportLostBook } from "../../api/borrowApi";
 
 import "bootstrap/dist/css/bootstrap.min.css";
 
@@ -14,6 +14,12 @@ function ReturnBook() {
     const [selected, setSelected] = useState({});
     // { [borrowId]: ReturnResponse }
     const [returnResults, setReturnResults] = useState({});
+    // { [borrowId]: FineResponse[] } — phiếu phạt mất sách vừa tạo
+    const [lostResults, setLostResults] = useState({});
+    // { borrowId, barcode, bookTitle } — sách đang được lập phiếu mất
+    const [lostTarget, setLostTarget] = useState(null);
+    const [lostAmount, setLostAmount] = useState("");
+    const [lostReason, setLostReason] = useState("");
 
     const fmtDate = (d) => (d ? new Date(d).toLocaleDateString() : "-");
 
@@ -24,7 +30,9 @@ function ReturnBook() {
         }
         setError("");
         setReturnResults({});
+        setLostResults({});
         setSelected({});
+        setLostTarget(null);
         try {
             setLoading(true);
             const res = await getBorrowsByEmail(email.trim());
@@ -71,6 +79,49 @@ function ReturnBook() {
     // Bỏ trống barcodes = backend trả toàn bộ bản sao chưa trả
     const returnAll = (borrowId) => doReturn(borrowId, []);
 
+    const openLostForm = (borrowId, barcode, bookTitle) => {
+        setError("");
+        setLostTarget({ borrowId, barcode, bookTitle });
+        setLostAmount("");
+        setLostReason("");
+    };
+
+    const cancelLostForm = () => {
+        setLostTarget(null);
+        setLostAmount("");
+        setLostReason("");
+    };
+
+    const submitLost = async () => {
+        if (!lostTarget) return;
+        const { borrowId, barcode } = lostTarget;
+        const payload = { borrowId, barcode };
+        if (lostAmount !== "") payload.amount = Number(lostAmount);
+        if (lostReason.trim() !== "") payload.reason = lostReason.trim();
+        setError("");
+        try {
+            const res = await reportLostBook(payload);
+            setLostResults((prev) => ({
+                ...prev,
+                [borrowId]: [...(prev[borrowId] || []), res.data],
+            }));
+            cancelLostForm();
+            await loadBorrows();
+        } catch (err) {
+            setError(err.response?.data?.message || err.response?.data?.errorCode || "Failed to create fine for lost book.");
+        }
+    };
+
+    const renderItemStatus = (item, lostBarcodes) => {
+        if (lostBarcodes.has(item.barcode)) {
+            return <span className="badge bg-danger">Lost</span>;
+        }
+        if (item.returnDate) {
+            return <span className="badge bg-success">Returned {fmtDate(item.returnDate)}</span>;
+        }
+        return <span className="badge bg-warning text-dark">Borrowing</span>;
+    };
+
     return (
         <div className="container mt-4" style={{ maxWidth: 900 }}>
             <h3 className="mb-3">
@@ -101,6 +152,8 @@ function ReturnBook() {
 
             {borrows.map((borrow) => {
                 const result = returnResults[borrow.id];
+                const lostFines = lostResults[borrow.id];
+                const lostBarcodes = new Set((lostFines || []).map((f) => f.barcode));
                 const remainingItems = (borrow.items || []).filter((it) => !it.returnDate);
                 const overdue = !borrow.returned && borrow.dueDate && new Date(borrow.dueDate) < new Date();
 
@@ -131,11 +184,12 @@ function ReturnBook() {
                                         <th>Barcode</th>
                                         <th>Book title</th>
                                         <th>Status</th>
+                                        <th style={{ width: 90 }}></th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {(borrow.items || []).map((item) => {
-                                        const isReturned = !!item.returnDate;
+                                        const isOpen = !item.returnDate;
                                         const checked = selected[borrow.id]?.has(item.barcode) || false;
                                         return (
                                             <tr key={item.detailId}>
@@ -144,19 +198,22 @@ function ReturnBook() {
                                                         type="checkbox"
                                                         className="form-check-input"
                                                         checked={checked}
-                                                        disabled={isReturned}
+                                                        disabled={!isOpen}
                                                         onChange={() => toggleBarcode(borrow.id, item.barcode)}
                                                     />
                                                 </td>
                                                 <td>{item.barcode}</td>
                                                 <td>{item.bookTitle}</td>
-                                                <td>
-                                                    {isReturned ? (
-                                                        <span className="badge bg-success">
-                                                            Returned {fmtDate(item.returnDate)}
-                                                        </span>
-                                                    ) : (
-                                                        <span className="badge bg-warning text-dark">Borrowing</span>
+                                                <td>{renderItemStatus(item, lostBarcodes)}</td>
+                                                <td className="text-center">
+                                                    {isOpen && (
+                                                        <button
+                                                            className="btn btn-outline-danger btn-sm"
+                                                            onClick={() => openLostForm(borrow.id, item.barcode, item.bookTitle)}
+                                                            title="Report as lost and create a fine"
+                                                        >
+                                                            Lost
+                                                        </button>
                                                     )}
                                                 </td>
                                             </tr>
@@ -173,6 +230,48 @@ function ReturnBook() {
                                     <button className="btn btn-success btn-sm" onClick={() => returnAll(borrow.id)}>
                                         Return all remaining
                                     </button>
+                                </div>
+                            )}
+
+                            {/* Form lập phiếu phạt mất sách */}
+                            {lostTarget && lostTarget.borrowId === borrow.id && (
+                                <div className="card border-danger mt-3">
+                                    <div className="card-body">
+                                        <h6 className="text-danger mb-3">
+                                            <i className="bi bi-exclamation-triangle me-2"></i>
+                                            Report lost: {lostTarget.barcode} — {lostTarget.bookTitle}
+                                        </h6>
+                                        <div className="row g-2">
+                                            <div className="col-12 col-md-4">
+                                                <label className="form-label mb-1">Fine amount (đ)</label>
+                                                <input
+                                                    type="number"
+                                                    min="0"
+                                                    className="form-control"
+                                                    placeholder="Empty = book price"
+                                                    value={lostAmount}
+                                                    onChange={(e) => setLostAmount(e.target.value)}
+                                                />
+                                            </div>
+                                            <div className="col-12 col-md-8">
+                                                <label className="form-label mb-1">Reason</label>
+                                                <input
+                                                    className="form-control"
+                                                    placeholder="Empty = &quot;Mất sách: <title>&quot;"
+                                                    value={lostReason}
+                                                    onChange={(e) => setLostReason(e.target.value)}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="mt-3 d-flex gap-2">
+                                            <button className="btn btn-danger btn-sm" onClick={submitLost}>
+                                                Create fine
+                                            </button>
+                                            <button className="btn btn-secondary btn-sm" onClick={cancelLostForm}>
+                                                Cancel
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                             )}
 
@@ -195,6 +294,23 @@ function ReturnBook() {
                                             </ul>
                                         </div>
                                     )}
+                                </div>
+                            )}
+
+                            {lostFines && lostFines.length > 0 && (
+                                <div className="alert alert-danger py-2 mt-3 mb-0">
+                                    <strong>Fines created for lost book(s):</strong>
+                                    <ul className="mb-1">
+                                        {lostFines.map((f) => (
+                                            <li key={f.id}>
+                                                {f.barcode}: {Number(f.amount).toLocaleString()} đ — {f.reason}
+                                                {" "}<span className="badge bg-secondary">{f.status}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                    <small className="text-muted">
+                                        The member can pay this fine from their account (Payment / PayOS).
+                                    </small>
                                 </div>
                             )}
                         </div>

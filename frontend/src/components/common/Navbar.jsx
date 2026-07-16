@@ -89,6 +89,10 @@ const Navbar = () => {
                                                 <i className="bi bi-journal-arrow-up me-1"></i>
                                                 Return Books
                                             </NavDropdown.Item>
+                                            <NavDropdown.Item as={Link} to="/librarian/fines" active={location.pathname === '/librarian/fines'}>
+                                                <i className="bi bi-cash-coin me-1"></i>
+                                                Fines
+                                            </NavDropdown.Item>
                                         </NavDropdown>
                                     </li>
                                 )}
