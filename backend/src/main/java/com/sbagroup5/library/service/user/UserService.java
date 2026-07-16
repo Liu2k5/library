@@ -24,7 +24,7 @@ public class UserService {
      */
     public UserProfileResponse getProfile(String username) {
         User user = userRepository.findById(username)
-                .orElseThrow(() -> new BusinessException("User not found", "USER_NOT_FOUND"));
+                .orElseThrow(() -> new BusinessException("USER_NOT_FOUND", "User not found"));
 
         return new UserProfileResponse(
                 user.getUsername(),
@@ -42,7 +42,7 @@ public class UserService {
      */
     public User getUserByUsername(String username) {
         return userRepository.findById(username)
-                .orElseThrow(() -> new BusinessException("User not found", "USER_NOT_FOUND"));
+                .orElseThrow(() -> new BusinessException("USER_NOT_FOUND", "User not found"));
     }
 
     /**
@@ -51,12 +51,12 @@ public class UserService {
     @Transactional
     public UserProfileResponse updateProfile(String username, UpdateProfileRequest request) {
         User user = userRepository.findById(username)
-                .orElseThrow(() -> new BusinessException("User not found", "USER_NOT_FOUND"));
+                .orElseThrow(() -> new BusinessException("USER_NOT_FOUND", "User not found"));
 
         // Check phone uniqueness (if changed)
         if (!user.getPhone().equals(request.phone()) &&
                 userRepository.existsByPhone(request.phone())) {
-            throw new BusinessException("Phone number already exists", "PHONE_EXISTS");
+            throw new BusinessException("PHONE_EXISTS", "Phone number already exists");
         }
 
         // Update editable fields

@@ -12,6 +12,10 @@ export const createBorrow = (data) => API.post(BASE, data);
 // Trả sách: { borrowId, barcodes?: [] } (bỏ trống barcodes = trả tất cả)
 export const returnBooks = (data) => API.post(`${BASE}/return`, data);
 
+// Lập phiếu phạt do mất sách: { borrowId, barcode, amount?, reason? }
+// amount bỏ trống = lấy theo giá sách. Trả về FineResponse.
+export const reportLostBook = (data) => API.post(`${BASE}/lost`, data);
+
 // Danh sách phiếu mượn theo email thành viên
 export const getBorrowsByEmail = (email) =>
     API.get(`${BASE}?email=${encodeURIComponent(email)}`);

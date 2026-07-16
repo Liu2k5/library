@@ -2,7 +2,8 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import PrivateRoute from './components/common/PrivateRoute';
 import Layout from './components/layout/Layout';
-import { AuthProvider, useAuth } from './context/AuthContext';
+import Home from './components/home/Home';
+import { AuthProvider } from './context/AuthContext';
 import { MembershipProvider } from './context/MembershipContext';
 
 // Authentication Components
@@ -24,6 +25,7 @@ import CategoryForm from './components/librarian/CategoryForm';
 import CategoryList from './components/librarian/CategoryList';
 import BorrowForm from './components/librarian/BorrowForm';
 import ReturnBook from './components/librarian/ReturnBook';
+import FineList from './components/librarian/FineList';
 
 // Admin Components
 import AccountManage from './components/admin/AccountManage';
@@ -40,36 +42,6 @@ import MembershipPage from './components/membership/MembershipPage';
 import PaymentCancel from './components/payment/PaymentCancel';
 import PaymentHistory from './components/payment/PaymentHistoryPage';
 import PaymentSuccess from './components/payment/PaymentSuccess';
-
-// Home Component
-const Home = () => {
-    const { user } = useAuth();
-    return (
-        <div className="container mt-5">
-            <div className="jumbotron bg-light p-5 rounded">
-                <h1 className="display-4">Library Management System</h1>
-                <p className="lead">
-                    {user ? (
-                        <>Welcome back, <strong>{user.fullName || user.username}</strong>!</>
-                    ) : (
-                        'Welcome to Library Management System'
-                    )}
-                </p>
-                <hr className="my-4" />
-                <p>
-                    This is a comprehensive library management system for managing books,
-                    borrowings, and user accounts.
-                </p>
-                {!user && (
-                    <div className="mt-4">
-                        <a href="/login" className="btn btn-primary me-2">Login</a>
-                        <a href="/register" className="btn btn-outline-primary">Register</a>
-                    </div>
-                )}
-            </div>
-        </div>
-    );
-};
 
 function App() {
     return (
@@ -140,6 +112,7 @@ function App() {
                                             <Route path="bookcopies/edit/:id" element={<BookCopyForm />} />
                                             <Route path="borrows" element={<BorrowForm />} />
                                             <Route path="returns" element={<ReturnBook />} />
+                                            <Route path="fines" element={<FineList />} />
                                         </Routes>
                                     </PrivateRoute>
                                 }

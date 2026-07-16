@@ -3,8 +3,11 @@ import axiosInstance from './axiosConfig';
 
 const API = axiosInstance;
 
-export const getBooks = (page, size, keyword = "") =>
-    API.get(`/librarian/books?page=${page}&size=${size}&keyword=${keyword}`);
+export const getBooks = (page, size, keyword = "", categoryId = "") =>
+    API.get(
+        `/librarian/books?page=${page}&size=${size}&keyword=${encodeURIComponent(keyword)}` +
+        (categoryId ? `&categoryId=${categoryId}` : "")
+    );
 
 export const getBook = (id) =>
     API.get(`/librarian/books/${id}`);

@@ -11,5 +11,6 @@ public record BorrowItemResponse(
         Long copyId,
         String barcode,
         String bookTitle,
-        Date returnDate) implements Serializable {
+        Date returnDate,
+        String status) implements Serializable {
 }

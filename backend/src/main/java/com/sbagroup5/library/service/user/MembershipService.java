@@ -75,12 +75,12 @@ public class MembershipService {
         User user = userService.getUserByUsername(username);
 
         if (membershipRepository.existsByUser(user)) {
-            throw new BusinessException("User already has a membership", "MEMBERSHIP_EXISTS");
+            throw new BusinessException("MEMBERSHIP_EXISTS", "User already has a membership");
         }
 
         if (paymentRepository.existsByUserAndTypeAndStatus(user, PaymentType.MEMBERSHIP, PaymentStatus.PENDING)) {
-            throw new BusinessException("You have a pending payment. Please complete or cancel it first.",
-                    "PENDING_PAYMENT_EXISTS");
+            throw new BusinessException("PENDING_PAYMENT_EXISTS",
+                    "You have a pending payment. Please complete or cancel it first.");
         }
 
         MembershipType type = getMembershipTypeById(membershipTypeId);
@@ -107,22 +107,22 @@ public class MembershipService {
         User user = userService.getUserByUsername(username);
 
         Membership existingMembership = membershipRepository.findByUser(user)
-                .orElseThrow(() -> new BusinessException("No membership found to renew", "NO_MEMBERSHIP"));
+                .orElseThrow(() -> new BusinessException("NO_MEMBERSHIP", "No membership found to renew"));
 
         if (!canRenew(existingMembership)) {
             throw new BusinessException(
-                    "Cannot renew membership. It must be within " + RENEWAL_THRESHOLD_DAYS + " days of expiration.",
-                    "CANNOT_RENEW");
+                    "CANNOT_RENEW",
+                    "Cannot renew membership. It must be within " + RENEWAL_THRESHOLD_DAYS + " days of expiration.");
         }
 
         if (paymentRepository.existsByUserAndTypeAndStatus(user, PaymentType.MEMBERSHIP, PaymentStatus.PENDING)) {
-            throw new BusinessException("You have a pending payment. Please complete or cancel it first.",
-                    "PENDING_PAYMENT_EXISTS");
+            throw new BusinessException(
+                    "PENDING_PAYMENT_EXISTS", "You have a pending payment. Please complete or cancel it first.");
         }
 
         MembershipType type = existingMembership.getType();
         if (type == null) {
-            throw new BusinessException("Membership type not found", "MEMBERSHIP_TYPE_NOT_FOUND");
+            throw new BusinessException("MEMBERSHIP_TYPE_NOT_FOUND", "Membership type not found");
         }
 
         PaymentRequest paymentRequest = new PaymentRequest(
@@ -187,7 +187,7 @@ public class MembershipService {
     @Transactional
     public void renewMembershipAfterPayment(Long membershipId, Date currentEndDate) {
         Membership membership = membershipRepository.findById(membershipId)
-                .orElseThrow(() -> new BusinessException("Membership not found", "MEMBERSHIP_NOT_FOUND"));
+                .orElseThrow(() -> new BusinessException("MEMBERSHIP_NOT_FOUND", "Membership not found"));
 
         Date now = new Date();
 
@@ -285,7 +285,8 @@ public class MembershipService {
      */
     public MembershipType getMembershipTypeById(Long id) {
         return membershipTypeRepository.findById(id)
-                .orElseThrow(() -> new BusinessException("Membership type not found", "MEMBERSHIP_TYPE_NOT_FOUND"));
+                .orElseThrow(() -> new BusinessException("MEMBERSHIP_TYPE_NOT_FOUND",
+                        "Membership type not found"));
     }
 
     private MembershipTypeResponse toMembershipTypeResponse(MembershipType type) {
