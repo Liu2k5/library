@@ -16,7 +16,8 @@ const Sidebar = () => {
     const isProfileSection = location.pathname.startsWith('/profile') ||
         location.pathname.startsWith('/change-password') ||
         location.pathname.startsWith('/membership') ||
-        location.pathname.startsWith('/payment');
+        location.pathname.startsWith('/payment') ||
+        location.pathname.startsWith('/ai-chat');
 
     // If not in any special section, hide sidebar
     if (!isLibrarianSection && !isAdminSection && !isProfileSection) {
