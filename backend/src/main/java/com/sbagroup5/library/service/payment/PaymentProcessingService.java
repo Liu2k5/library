@@ -179,19 +179,25 @@ public class PaymentProcessingService {
 
     @Transactional
     public void handleWebhook(Long paymentId, String transactionCode) {
+        log.info("Processing webhook for payment: {}", paymentId);
+
         Payment payment = paymentRepository.findById(paymentId)
-                .orElseThrow(() -> new BusinessException("PAYMENT_NOT_FOUND", "Payment not found"));
+                .orElseThrow(() -> {
+                    log.error("Payment not found: {}", paymentId);
+                    return new BusinessException("PAYMENT_NOT_FOUND", "Payment not found");
+                });
+
+        log.info("Payment found: id={}, status={}, type={}", payment.getId(), payment.getStatus(), payment.getType());
 
         if (payment.getStatus() == PaymentStatus.COMPLETED) {
-            log.warn("Payment {} already completed, skipping webhook", paymentId);
+            log.warn("Payment {} already completed, skipping", paymentId);
             return;
         }
 
-        // Update payment status
         payment.setStatus(PaymentStatus.COMPLETED);
         paymentRepository.save(payment);
+        log.info("Payment {} status updated to COMPLETED", paymentId);
 
-        // Create bill
         Bill bill = Bill.builder()
                 .payment(payment)
                 .gatewayName("PayOS")
@@ -200,14 +206,16 @@ public class PaymentProcessingService {
                 .createdAt(new Date())
                 .build();
         billRepository.save(bill);
+        log.info("Bill created for payment: {}", paymentId);
 
-        // Process post-payment actions
         processPostPayment(payment);
 
         log.info("Webhook processed for payment {} successfully", paymentId);
     }
 
     private void processPostPayment(Payment payment) {
+        log.info("Processing post-payment for payment: {}, type: {}", payment.getId(), payment.getType());
+
         User user = payment.getUser();
 
         if (payment.getType() == PaymentType.MEMBERSHIP) {
@@ -222,49 +230,83 @@ public class PaymentProcessingService {
 
     private void processMembershipPayment(Payment payment) {
         User user = payment.getUser();
-        Long membershipTypeId = paymentMembershipTypeMap.remove(payment.getId());
+        Long paymentId = payment.getId();
 
-        // Check if renewal
-        RenewalDetails renewalDetails = paymentRenewalMap.remove(payment.getId());
+        log.info("Processing membership payment for user: {}", user.getUsername());
+
+        // Kiểm tra renewal trước
+        RenewalDetails renewalDetails = paymentRenewalMap.remove(paymentId);
 
         if (renewalDetails != null && renewalDetails.membershipId != null) {
-            // This is a renewal
-            membershipService.renewMembershipAfterPayment(renewalDetails.membershipId, renewalDetails.currentEndDate);
-            // Send renewal notification
-            notificationService.sendMembershipRenewalNotification(user);
-        } else if (membershipTypeId != null) {
-            // This is a new registration
-            MembershipType type = membershipService.getMembershipTypeById(membershipTypeId);
-            if (type != null) {
-                membershipService.activateMembership(user, type);
-                // Send activation notification
-                notificationService.sendMembershipActivationNotification(user);
-            } else {
-                log.warn("Membership type not found for payment: {}", payment.getId());
+            // Đây là renewal
+            log.info("Processing RENEWAL for membership: {}", renewalDetails.membershipId);
+            try {
+                membershipService.renewMembershipAfterPayment(renewalDetails.membershipId,
+                        renewalDetails.currentEndDate);
+                notificationService.sendMembershipRenewalNotification(user);
+                log.info("Membership renewed for user: {}", user.getUsername());
+            } catch (Exception e) {
+                log.error("Error renewing membership: {}", e.getMessage(), e);
+                throw new BusinessException("RENEWAL_ERROR", "Failed to renew membership: " + e.getMessage());
             }
-        } else {
-            // Fallback: try to find existing membership or create default
-            Membership existing = membershipRepository.findByUser(user).orElse(null);
-            if (existing != null && membershipService.canRenew(existing)) {
-                membershipService.renewMembershipAfterPayment(existing.getId(), existing.getEndDate());
-            } else {
-                MembershipType defaultType = membershipTypeRepository.findByName("Premium");
-                if (defaultType == null) {
-                    defaultType = MembershipType.builder()
-                            .name("Premium")
-                            .price(100000L)
-                            .borrowLimit(5)
-                            .borrowDurationDay(14)
-                            .description("Premium default package")
-                            .userStatus(UserStatus.ACTIVE)
-                            .build();
-                    membershipTypeRepository.save(defaultType);
-                }
-                membershipService.activateMembership(user, defaultType);
-            }
+            return;
         }
 
-        log.info("Membership processed for user: {}", user.getUsername());
+        // Kiểm tra membership type từ map
+        Long membershipTypeId = paymentMembershipTypeMap.remove(paymentId);
+
+        if (membershipTypeId != null) {
+            // Đây là đăng ký mới
+            log.info("Processing NEW membership registration, typeId: {}", membershipTypeId);
+            try {
+                MembershipType type = membershipService.getMembershipTypeById(membershipTypeId);
+                membershipService.activateMembership(user, type);
+                notificationService.sendMembershipActivationNotification(user);
+                log.info("New membership activated for user: {}", user.getUsername());
+            } catch (Exception e) {
+                log.error("Error activating membership: {}", e.getMessage(), e);
+                throw new BusinessException("ACTIVATION_ERROR", "Failed to activate membership: " + e.getMessage());
+            }
+            return;
+        }
+
+        // Fallback
+        log.warn("No membership type or renewal info found, using fallback");
+        Membership existing = membershipRepository.findByUser(user).orElse(null);
+        if (existing != null) {
+            try {
+                membershipService.renewMembershipAfterPayment(existing.getId(), existing.getEndDate());
+                notificationService.sendMembershipRenewalNotification(user);
+                log.info("Membership renewed (fallback) for user: {}", user.getUsername());
+            } catch (Exception e) {
+                log.error("Error renewing membership (fallback): {}", e.getMessage(), e);
+                createDefaultMembership(user);
+            }
+        } else {
+            createDefaultMembership(user);
+        }
+    }
+
+    private void createDefaultMembership(User user) {
+        try {
+            MembershipType defaultType = membershipTypeRepository.findByName("Premium");
+            if (defaultType == null) {
+                defaultType = MembershipType.builder()
+                        .name("Premium")
+                        .price(100000L)
+                        .borrowLimit(5)
+                        .borrowDurationDay(14)
+                        .description("Premium default package")
+                        .userStatus(UserStatus.ACTIVE)
+                        .build();
+                membershipTypeRepository.save(defaultType);
+            }
+            membershipService.activateMembership(user, defaultType);
+            notificationService.sendMembershipActivationNotification(user);
+            log.info("Default membership created for user: {}", user.getUsername());
+        } catch (Exception e) {
+            log.error("Error creating default membership: {}", e.getMessage(), e);
+        }
     }
 
     private void processFinePayment(Payment payment) {
@@ -276,19 +318,19 @@ public class PaymentProcessingService {
     private void sendPaymentConfirmationEmail(User user, Payment payment) {
         try {
             String subject = "Payment Confirmation - Transaction: " + payment.getId();
-            String body = String.format(
-                    "Thank you for your payment!\n\n" +
-                            "Transaction ID: %d\n" +
-                            "Amount: %d VND\n" +
-                            "Type: %s\n" +
-                            "Date: %s\n\n" +
-                            "Best regards,\nLibrary System",
-                    payment.getId(),
-                    payment.getAmount(),
-                    payment.getType(),
-                    payment.getDate());
+            String body = "Payment Confirmation\n\n" +
+                    "Dear " + user.getUsername() + ",\n\n" +
+                    "We have received your payment successfully.\n\n" +
+                    "Transaction ID: " + payment.getId() + "\n" +
+                    "Amount: " + payment.getAmount() + " VND\n" +
+                    "Payment Type: " + payment.getType() + "\n" +
+                    "Date: " + payment.getDate() + "\n\n" +
+                    "Thank you for using our service!\n\n" +
+                    "Best regards,\n" +
+                    "Library Management Team";
 
             emailService.sendSimpleEmail(user.getEmail(), subject, body);
+            log.info("Payment confirmation email sent to: {}", user.getEmail());
         } catch (Exception e) {
             log.error("Failed to send payment confirmation email to {}: {}", user.getEmail(), e.getMessage());
         }
