@@ -7,6 +7,7 @@ import com.sbagroup5.library.service.payment.PaymentService;
 
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import lombok.RequiredArgsConstructor;
@@ -16,6 +17,7 @@ import vn.payos.model.webhooks.WebhookData;
 
 @RequiredArgsConstructor
 @RestController
+@RequestMapping("/api/payos")
 @Slf4j
 public class PayOsWebhookApi {
 

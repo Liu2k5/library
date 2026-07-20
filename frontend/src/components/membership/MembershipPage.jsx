@@ -11,7 +11,6 @@ const MembershipPage = () => {
         membershipTypes,
         currentMembership,
         loading,
-        error,
         fetchMembershipTypes,
         fetchCurrentMembership,
         registerMembership,
@@ -190,19 +189,7 @@ const MembershipPage = () => {
                 </div>
             )}
 
-            {/* Error Messages */}
-            {error && (
-                <div className="alert alert-danger alert-dismissible fade show" role="alert">
-                    <i className="bi bi-exclamation-triangle me-2"></i>
-                    {error}
-                    <button
-                        type="button"
-                        className="btn-close"
-                        onClick={() => fetchMembershipTypes()}
-                    />
-                </div>
-            )}
-
+            {/* Error Messages - Only show actionError, hide context error */}
             {actionError && (
                 <div className="alert alert-danger alert-dismissible fade show" role="alert">
                     <i className="bi bi-exclamation-triangle me-2"></i>
@@ -217,82 +204,89 @@ const MembershipPage = () => {
 
             {/* Membership Types Grid */}
             <div className="membership-grid">
-                {membershipTypes.map((type) => (
-                    <div className="membership-card" key={type.id}>
-                        <div className="card h-100 shadow-sm hover-shadow">
-                            <div className="card-body text-center">
-                                <div className="membership-type-icon">
-                                    <i className="bi bi-award"></i>
-                                </div>
-                                <h5 className="card-title mt-3">{type.name}</h5>
-                                <div className="membership-price">
-                                    <span className="price-amount">
-                                        {type.price === 0 ? 'FREE' : `${type.price.toLocaleString()} VND`}
-                                    </span>
-                                </div>
-                                <hr />
-                                <ul className="membership-features list-unstyled text-start">
-                                    <li>
-                                        <i className="bi bi-check-circle-fill text-success me-2"></i>
-                                        Borrow up to <strong>{type.borrowLimit}</strong> books
-                                    </li>
-                                    <li>
-                                        <i className="bi bi-check-circle-fill text-success me-2"></i>
-                                        {type.borrowDurationDay} days borrowing period
-                                    </li>
-                                    {type.description && (
+                {membershipTypes.map((type) => {
+                    const hasActiveMembership = currentMembership && !currentMembership.isExpired;
+                    const isCurrentPlan = hasActiveMembership && currentMembership.typeName === type.name;
+                    const isExpiredPlan = currentMembership && currentMembership.isExpired && currentMembership.typeName === type.name;
+
+                    // Disable button if:
+                    // 1. Processing
+                    // 2. Has active membership (all plans disabled except current plan)
+                    // 3. Is current active plan
+                    const isDisabled = isProcessing ||
+                        (hasActiveMembership && currentMembership.typeName !== type.name) ||
+                        (hasActiveMembership && currentMembership.typeName === type.name);
+
+                    return (
+                        <div className="membership-card" key={type.id}>
+                            <div className="card h-100 shadow-sm hover-shadow">
+                                <div className="card-body text-center">
+                                    <div className="membership-type-icon">
+                                        <i className="bi bi-award"></i>
+                                    </div>
+                                    <h5 className="card-title mt-3">{type.name}</h5>
+                                    <div className="membership-price">
+                                        <span className="price-amount">
+                                            {type.price === 0 ? 'FREE' : `${type.price.toLocaleString()} VND`}
+                                        </span>
+                                    </div>
+                                    <hr />
+                                    <ul className="membership-features list-unstyled text-start">
                                         <li>
-                                            <i className="bi bi-info-circle me-2"></i>
-                                            {type.description}
+                                            <i className="bi bi-check-circle-fill text-success me-2"></i>
+                                            Borrow up to <strong>{type.borrowLimit}</strong> books
                                         </li>
-                                    )}
-                                </ul>
-                                <button
-                                    className="btn btn-primary w-100 mt-3"
-                                    onClick={() => handleRegister(type.id)}
-                                    disabled={
-                                        isProcessing ||
-                                        (currentMembership &&
-                                            currentMembership.typeName === type.name &&
-                                            !currentMembership.isExpired &&
-                                            !currentMembership.canRenew)
-                                    }
-                                >
-                                    {isProcessing ? (
-                                        <>
-                                            <span className="spinner-border spinner-border-sm me-1" />
-                                            Processing...
-                                        </>
-                                    ) : (
-                                        <>
-                                            {currentMembership &&
-                                                currentMembership.typeName === type.name &&
-                                                !currentMembership.isExpired &&
-                                                !currentMembership.canRenew
-                                                ? 'Current Plan'
-                                                : currentMembership &&
-                                                    currentMembership.typeName === type.name &&
-                                                    currentMembership.canRenew
-                                                    ? 'Renew Now'
-                                                    : currentMembership && currentMembership.isExpired
-                                                        ? 'Reactivate'
-                                                        : 'Choose Plan'}
-                                        </>
-                                    )}
-                                </button>
-                                {currentMembership &&
-                                    currentMembership.typeName === type.name &&
-                                    !currentMembership.isExpired &&
-                                    !currentMembership.canRenew && (
+                                        <li>
+                                            <i className="bi bi-check-circle-fill text-success me-2"></i>
+                                            {type.borrowDurationDay} days borrowing period
+                                        </li>
+                                        {type.description && (
+                                            <li>
+                                                <i className="bi bi-info-circle me-2"></i>
+                                                {type.description}
+                                            </li>
+                                        )}
+                                    </ul>
+                                    <button
+                                        className="btn btn-primary w-100 mt-3"
+                                        onClick={() => handleRegister(type.id)}
+                                        disabled={isDisabled}
+                                    >
+                                        {isProcessing ? (
+                                            <>
+                                                <span className="spinner-border spinner-border-sm me-1" />
+                                                Processing...
+                                            </>
+                                        ) : isCurrentPlan ? (
+                                            <>
+                                                <i className="bi bi-check-circle me-1"></i>
+                                                Current Plan
+                                            </>
+                                        ) : isExpiredPlan ? (
+                                            'Reactivate'
+                                        ) : hasActiveMembership && currentMembership.typeName !== type.name ? (
+                                            'Not Available'
+                                        ) : (
+                                            'Choose Plan'
+                                        )}
+                                    </button>
+                                    {isCurrentPlan && (
                                         <small className="text-muted d-block mt-2">
                                             <i className="bi bi-check-circle me-1"></i>
                                             Active Plan
                                         </small>
                                     )}
+                                    {hasActiveMembership && currentMembership.typeName !== type.name && (
+                                        <small className="text-muted d-block mt-2">
+                                            <i className="bi bi-lock me-1"></i>
+                                            Only one membership allowed
+                                        </small>
+                                    )}
+                                </div>
                             </div>
                         </div>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
 
             {/* Empty state when no membership types */}
